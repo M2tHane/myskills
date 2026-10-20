@@ -1,19 +1,31 @@
 ---
 name: ui-prototype
-description: 在 grill-spec 之后运行：读 docs/PRD.md 与 docs/ARCHITECTURE.md，用选定的 UI 套件在 docs/prototype/ 生成可点击的前端原型（假数据、四种状态），用户验收后整理成 pi-forge 需要的输入。用户输入 /ui-prototype 时使用。
+description: 在 grill-spec 之后运行：读 docs/PRD.md 与 docs/ARCHITECTURE.md，用选定的 UI 套件在 docs/prototype/ 生成可点击的前端原型（假数据、四种状态），用户验收后整理成 pi-forge 需要的输入。也可以用 quick 模式在没有 PRD 时先做几页看看。用户输入 /ui-prototype 时使用。
 disable-model-invocation: true
-argument-hint: "[对已有原型的修改意见]"
+argument-hint: "[quick <想看的页面>] 或 [对已有原型的修改意见]"
 ---
 
 # ui-prototype
 
 把 grill-spec 写好的需求变成可点击的前端原型，放在 `docs/prototype/`，交给用户验收；通过后整理成 pi-forge `/forge-build` 能直接读取的样子。分六步：检查输入 → 选套件 → 搭工程 → 写页面 → 用户验收 → 交付。
 
+## 轻量模式（quick）
+
+`/ui-prototype quick <想看的页面描述>`（如 `quick 供应商列表和详情`）：还没有 PRD、只想先看几页时用。
+
+- 跳过：第 0 步的输入检查、第 4 步，以及第 6 步的跳转页和交付检查。
+- 照常做：第 1 步选套件、第 2 步搭工程、第 3 步只写描述里点名的页面（四种状态照样要有）、第 5 步截图自查和请用户验收。
+- 页面的字段、操作、假数据从描述推出来，按套件规范定；描述含糊到连页面类型都定不了时，用 AskUserQuestion 问一次。自己定下的内容在第 5 步列出。
+- 描述里没提角色时只留一个演示账号。第 5 步的修改意见只改原型（没有 PRD 可改）。
+- 产物同样放在 `docs/prototype/`。在它的 README.md 标题下面写一行「模式：quick」，并把「需求以 PRD.md 为准」那句换成用户的描述原文。
+- 用户通过后只打包 `app.html`（不删依赖），告诉用户：有了 PRD 再运行 `/ui-prototype`，会在原地补齐，不用重做。
+
 ## 0. 检查输入
 
 - 需要 `docs/PRD.md` 和 `docs/ARCHITECTURE.md`，缺一个就停下，请用户先运行 `/grill-spec`。
 - 从 PRD.md 的「页面」表读出页面清单（页面、原型文件、对应需求、路由），再读每个页面的规格（类型、字段、操作、状态、假数据）和「通用约定」。
 - `docs/prototype/` 里已有本 skill 生成的原型（有 `package.json` 和 `README.md`）时是**修改模式**：沿用 README.md 里写的套件，在 `docs/prototype/` 里 `npm ci`，读源码后直接进第 4 步；用户调用时附带的意见作为第一轮修改。
+- README.md 里写着「模式：quick」时，也按修改模式在原地补齐，不重建工程：照常做本步的检查；对照 PRD 页面表，已有的页面按页面规格改字段和假数据，没有的页面照第 3 步补上（角色、`review.json` 一起补）；然后照常做第 4–6 步。删掉 README 里「模式：quick」那一行，需求来源改回 PRD.md。
 - `docs/prototype/` 里有别的东西（手写的原型等）时先问用户：覆盖 / 取消。
 
 ## 1. 选套件
