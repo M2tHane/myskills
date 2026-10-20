@@ -400,9 +400,8 @@ src/
   api/<资源>.ts       接口层：fetch 函数 + 查询键 + useXxx hooks；类型也从这里导出
   api/query-client.ts 全局 QueryClient
   api/errors.ts       ApiError（接口报错，带 HTTP 状态码）；mocks 的 fail() 也抛它
-  api/paging.ts       列表分页的参数与返回值（ListParams、Paged）
   api/session.ts      当前用户：useCurrentUser()（页面）、getCurrentUser()（api）；接真实登录时只改它
-  mocks/              模拟数据与 delay()、演示账号 users.ts、假数据生成器 gen.ts、分页 paginate()；只有 api/ 能引用
+  mocks/              模拟数据与 delay()、演示账号 users.ts、假数据生成器 gen.ts；只有 api/ 能引用
   stores/<名称>.ts    Zustand（只放跨页面的前端状态）
   components/ui/      Strata 组件；components/chart/ 等可选组件
   lib/utils.ts        cn()
@@ -421,7 +420,6 @@ src/
 
 - 页面只从 `src/api/` 导入：`const { data, isPending } = useQueryList()`。页面里不出现 `fetch`、`axios`、`@/mocks`。
 - 每个资源一个文件：内部的 fetch 函数（先用 `delay(mock)`，后端好了换成真实请求）、集中定义的查询键、导出的 hooks。写操作用 `useMutation`，成功后让同一前缀的查询失效。
-- 列表接口按服务端分页：参数 `{ page, pageSize, q, filters, sort }`，返回 `{ items, total }`；页面把页码、筛选、排序存在 state 里传给 hook，用 `DataTable` 的受控分页显示。
 - 加载：列表用 `DataTable loading`；页面首次加载用与真实布局同尺寸的 `Skeleton`；按钮提交用 `Button loading`。不做整页转圈。
 - 失败：读取失败用 `LoadFailed`（`pages/errors/error-pages.tsx`）代替页面内容，403 显示无权限，其他显示「重试」；提交失败用 `toast({ tone: 'danger' })`，表单字段错误显示在对应 `Field` 下。
 - 删除给「撤销」：mutation 返回被删的数据，toast 的撤销按钮调用恢复接口。

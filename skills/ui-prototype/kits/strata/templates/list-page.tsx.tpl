@@ -1,26 +1,21 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router';
 import { Plus, Search } from 'lucide-react';
-import { Badge, Button, DataTable, EmptyState, Input, PageBody, PageHeader, Select, type BadgeTone, type Column, type DataTableSort } from '@/components/ui';
+import { Badge, Button, DataTable, EmptyState, Input, PageBody, PageHeader, Select, type BadgeTone, type Column } from '@/components/ui';
 import { __camel__Statuses, use__Name__List, type __Name__Row, type __Name__Status } from '@/api/__kebab__';
 import { LoadFailed } from '@/pages/errors/error-pages';
 
 const TONE: Record<__Name__Status, BadgeTone> = { 启用: 'success', 待审核: 'warning', 停用: 'neutral' };
 
-/**
- * __title__：路由 `__route__`。由 scripts/new-page.mjs 生成，标了 TODO(prd) 的地方照 PRD 页面规格填。
- * 服务端分页：页码、关键字、筛选、排序都随请求发给接口，接口返回当前页和总数。
- */
+/** __title__：路由 `__route__`。由 scripts/new-page.mjs 生成，标了 TODO(prd) 的地方照 PRD 页面规格填。数据一次拿全，表格自己分页。 */
 export function __Name__ListPage() {
   const navigate = useNavigate();
+  const { data: rows = [], isPending, isError, error, refetch } = use__Name__List();
   const [q, setQ] = React.useState('');
   const [status, setStatus] = React.useState<__Name__Status>();
-  const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
-  const [sort, setSort] = React.useState<DataTableSort | undefined>({ key: 'updated', dir: 'desc' });
-  const { data, isPending, isError, error, refetch } = use__Name__List({ page, pageSize, q, filters: { status }, sort });
+  const shown = rows.filter((r) => (!q || r.code.includes(q) || r.name.includes(q)) && (!status || r.status === status));
   const filtered = !!q || !!status;
-  const clear = () => { setQ(''); setStatus(undefined); setPage(1); };
+  const clear = () => { setQ(''); setStatus(undefined); };
   // TODO(prd) 主操作
   const create = () => navigate('__base__/new');
 
@@ -36,8 +31,8 @@ export function __Name__ListPage() {
   // TODO(prd) 筛选项照页面规格
   const toolbar = (
     <>
-      <div className="w-60"><Input leftIcon={<Search />} placeholder="搜索编号、名称" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} clearable onClear={() => { setQ(''); setPage(1); }} /></div>
-      <div className="w-32"><Select placeholder="全部状态" options={__camel__Statuses.map((s) => ({ value: s, label: s }))} value={status} onValueChange={(v) => { setStatus(v as __Name__Status); setPage(1); }} /></div>
+      <div className="w-60"><Input leftIcon={<Search />} placeholder="搜索编号、名称" value={q} onChange={(e) => setQ(e.target.value)} clearable onClear={() => setQ('')} /></div>
+      <div className="w-32"><Select placeholder="全部状态" options={__camel__Statuses.map((s) => ({ value: s, label: s }))} value={status} onValueChange={(v) => setStatus(v as __Name__Status)} /></div>
     </>
   );
 
@@ -52,10 +47,8 @@ export function __Name__ListPage() {
     <>
       <PageHeader title="__title__" actions={<Button variant="default" leftIcon={<Plus />} onClick={create}>新建__noun__</Button>} />
       <PageBody>
-        <DataTable columns={columns} data={data?.items ?? []} rowKey={(r) => r.id} loading={isPending} toolbar={toolbar} empty={empty}
-          total={data?.total ?? 0} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
-          sort={sort} onSortChange={(s) => { setSort(s); setPage(1); }}
-          onRowClick={(r) => navigate(`__base__/${r.id}`)} />
+        <DataTable columns={columns} data={shown} rowKey={(r) => r.id} loading={isPending} toolbar={toolbar} empty={empty}
+          defaultSort={{ key: 'updated', dir: 'desc' }} onRowClick={(r) => navigate(`__base__/${r.id}`)} />
       </PageBody>
     </>
   );

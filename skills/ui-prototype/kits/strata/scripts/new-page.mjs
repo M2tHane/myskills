@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 生成页面空壳：页面、接口层、假数据，并把路由（和导航）插进 src/app/。四种状态、两种空状态已经接好，要按 PRD 填的地方标了 TODO(prd)。
+// 生成页面空壳：页面、接口层（只读）、假数据，并把路由（和导航）插进 src/app/。四种状态、两种空状态、跳转和弹窗已经接好，要按 PRD 填的地方标了 TODO(prd)。
 // 用法（在 docs/prototype/ 里）：
 //   node scripts/new-page.mjs <list|detail|form> <资源名> --route <路由> --title <页面标题> [--noun <名词>] [--nav]
 //   node scripts/new-page.mjs list supplier --route /suppliers --title 供应商 --nav
@@ -91,10 +91,9 @@ else { writeFileSync(mockFile, render('mock.ts.tpl')); done.push(`新建 ${mockF
 
 const apiFile = `src/api/${resource}.ts`;
 const HOOKS = {
-  list: [[`use${Name}List`, `(p: ${Name}ListParams) => useQuery(...)，返回 { items, total }`], [`${camel}Statuses`, '状态的取值列表']],
+  list: [[`use${Name}List`, '() => useQuery(...)，返回全部数据（数组）'], [`${camel}Statuses`, '状态的取值列表']],
   detail: [[`use${Name}Detail`, '(id?: string) => useQuery(...)，找不到时返回 null']],
-  form: [[`use${Name}Detail`, '(id?: string) => useQuery(...)'], [`useCreate${Name}`, `() => useMutation(${Name}Input)`],
-    [`useUpdate${Name}`, `() => useMutation({ id, input })`], [`useDelete${Name}`, '() => useMutation(id)'], [`${camel}Statuses`, '状态的取值列表']],
+  form: [[`use${Name}Detail`, '(id?: string) => useQuery(...)'], [`${camel}Statuses`, '状态的取值列表']],
 };
 if (!existsSync(apiFile)) { writeFileSync(apiFile, render('api.ts.tpl')); done.push(`新建 ${apiFile}`); }
 else {

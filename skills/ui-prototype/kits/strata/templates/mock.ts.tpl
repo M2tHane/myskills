@@ -1,6 +1,6 @@
 /**
  * __noun__的假数据，由 scripts/new-page.mjs 生成。
- * TODO(prd) 字段、条数、各状态占比照 PRD 页面规格的「假数据」改；边界样例（超长名称、空值、极大数值）用 withEdges 放到固定位置。
+ * TODO(prd) 字段照页面规格改。二三十条、各种状态都有、带边界样例（超长名称、空值，用 withEdges）就够，不需要真实，也不需要和验收标准对上。
  */
 import { EDGE, date, org, person, pick, rows, seq, text, withEdges } from './gen';
 

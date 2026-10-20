@@ -17,7 +17,7 @@
 - 表单：react-hook-form 7.90.0 + zod 4.6.7 + @hookform/resolvers 5.9.2。
 - 用到才装：图表 echarts 6.1.0（Strata 图表组件），可拖动分栏 react-resizable-panels 4.14.7。
 - 检查：TypeScript 类型检查（tsc --noEmit）与 Strata 规范检查（node scripts/check.mjs src，拦写死的颜色、默认字号阴影、页面直接引用假数据）；前端单元测试与浏览器测试的框架由架构师定。
-- 当前用户：src/api/session.ts（原型里是演示账号与 ?as= 切换），接真实登录时只改这个文件。
+- 当前用户：src/api/session.ts（原型里是一个演示账号），接真实登录时只改这个文件。
 - 原型：docs/prototype/（目录结构、路由与页面写法可直接沿用）。
 ```
 
@@ -35,8 +35,8 @@ cp $K/templates/* $P/scripts/templates/
 cp -R $K/src/components/ui $P/src/components/
 cp $K/src/lib/utils.ts $P/src/lib/
 cp $K/src/app/app-layout.tsx $K/src/app/providers.tsx $K/src/app/unsaved-guard.tsx $P/src/app/
-cp $K/src/api/query-client.ts $K/src/api/errors.ts $K/src/api/session.ts $K/src/api/paging.ts $P/src/api/
-cp $K/src/mocks/delay.ts $K/src/mocks/users.ts $K/src/mocks/gen.ts $K/src/mocks/paginate.ts $P/src/mocks/
+cp $K/src/api/query-client.ts $K/src/api/errors.ts $K/src/api/session.ts $P/src/api/
+cp $K/src/mocks/delay.ts $K/src/mocks/users.ts $K/src/mocks/gen.ts $P/src/mocks/
 cp $K/src/pages/errors/error-pages.tsx $P/src/pages/errors/
 cd $P && npm ci && npm run typecheck
 ```
@@ -50,7 +50,9 @@ cd $P && npm ci && npm run typecheck
 
 ## 3. 写页面
 
-1. 先读完 `DESIGN.md`：第 1 节的 12 条用户偏好优先级最高，第 14、15 节规定数据和表单的写法。
+原型只为让人看：页面画出来，按钮点得开，页面之间能跳转，列表里有数据；功能不用真的生效。
+
+1. 先读完 `DESIGN.md`：第 1 节的 12 条用户偏好优先级最高，第 14 节规定数据的写法。
 2. 每页先用脚本生成，再照 PRD 填内容：
    ```bash
    npm run new-page -- list supplier --route /suppliers --title 供应商 --nav
@@ -58,26 +60,23 @@ cd $P && npm ci && npm run typecheck
    npm run new-page -- form supplier --route /suppliers/new,/suppliers/:id/edit --title 新建/编辑供应商
    ```
    - 类型：列表 `list`、详情 `detail`、新建 / 编辑 `form`。资源名用小写英文和连字符（`purchase-order`）；PRD 里一页有多个路由时，`--route` 用「,」隔开。
-   - 生成的文件：页面 `src/pages/<资源>/<资源>-<类型>-page.tsx`；第一次遇到这个资源时，再生成接口层 `src/api/<资源>.ts` 和假数据 `src/mocks/<资源>.ts`（30 条）。这两个已存在就跳过，并列出页面还缺的 hooks。路由插进 `routes.tsx`（同一资源放一组，面包屑两级）；加 `--nav` 时再插一个导航项。
-   - 生成的页面已经接好四种状态和两种空状态，要填的地方标了 `TODO(prd)`：列、筛选、字段、操作、信息分组。填完搜一遍 `TODO(prd)`，一处都不能剩。
+   - 生成的文件：页面 `src/pages/<资源>/<资源>-<类型>-page.tsx`；第一次遇到这个资源时，再生成接口层 `src/api/<资源>.ts`（只有读取）和假数据 `src/mocks/<资源>.ts`（30 条）。这两个已存在就跳过，并列出页面还缺的 hooks。路由插进 `routes.tsx`（同一资源放一组，面包屑两级）；加 `--nav` 时再插一个导航项。
+   - 生成的页面已经接好四种状态、两种空状态、跳转和一个删除弹窗，要填的地方标了 `TODO(prd)`：列、筛选、字段、操作、信息分组。填完搜一遍 `TODO(prd)`，一处都不能剩。
    - 脚本不生成的页面（概览、设置、向导、登录等），以及生成的页面要加 Tabs、侧滑详情等时，去 DESIGN.md 第 8 节的样板表找对应样板（在 `$K/src/pages/`，接口层样板在 `$K/src/api/`）照着写。样板页面和演示数据不要整份复制进原型。
 3. 改骨架（`src/app/app-layout.tsx` 不用改）：
    - `src/app/routes.tsx`：脚本生成的页面已经插好；手写的页面插在 `// @new-page:routes` 前面。路径与 PRD 页面表的「路由」一致，每级写 `handle.crumb`；详情页的面包屑默认显示 id。
    - `src/app/nav.tsx`：`SHELL` 写工作区名（产品名）、搜索框提示、通知数（不需要铃铛写 `null`）；`useNav` 返回项目的导航（导航项插在 `// @new-page:nav` 前面，`--nav` 插的图标统一是 `FileText`，要换成合适的）；`useCommandGroups` 返回项目的业务对象和常用操作；`useUserMenu` 返回用户菜单里的项（修改密码、退出登录等，没有就返回空数组）。
-   - `src/mocks/users.ts`：演示账号，见下一条。
-4. 角色：PRD 有多个角色时，`src/mocks/users.ts` 里每个角色放一个演示账号（需要部门、多个角色等字段就加在 `DemoUser` 上）。
-   - 权限规则写在资源的 api 文件里，一条规则一个函数（如 `canManageMembers(user)`），三处都用它：api 里用 `getCurrentUser()` 判断，没权限返回 `fail('…', 300, 403)`，页面照常用 `LoadFailed` 显示无权限；`useNav` 里过滤掉没权限的入口；页面里用 `useCurrentUser()` 决定按钮显示与否。
-   - 写法见样板：`$K/src/api/members.ts`、`$K/src/pages/members/member-list-page.tsx`、`$K/src/app/nav.tsx` 的 `useNav`（管理员能看成员列表；数据分析看不到入口，直接打开显示无权限）。
-   - 侧栏底部的用户菜单可以切换演示身份；地址加 `?as=<账号 id>` 直接以这个身份打开（如 `#/suppliers?as=chenjing`），切换后数据会重新请求。
-   - 只有一个角色时保留一个演示账号即可，菜单里不会出现切换。
-5. 数据：每个资源一个 `src/api/<资源>.ts`（fetch 函数用 `delay(假数据)`、查询键、hooks）和一个 `src/mocks/<资源>.ts`。脚本生成的是通用字段（编号、名称、状态、负责人、更新时间、备注），照 PRD 改：字段类型改 mock 里的 `XxxRow`，api 里的 `XxxListParams`（筛选项）、`XxxInput`（提交的字段）跟着改。列表接口按服务端分页：接收 `{ page, pageSize, q, filters, sort }`，返回 `{ items, total }`（类型在 `src/api/paging.ts`），假数据里用 `paginate()` 过滤和分页。假数据用 `src/mocks/gen.ts` 生成（固定种子，刷新不变），条数和各状态占比照 PRD 页面规格的「假数据」写（`pick` 的比例是精确的）；边界样例（超长名称、空值、极大数值）用 `withEdges` 放到固定位置。用法见 gen.ts 开头的例子。
+   - `src/mocks/users.ts`：只留一个演示账号，写 PRD 里权限最大的那个角色。
+4. 不分角色：PRD 有多个角色时，按权限最大的角色显示全部页面、导航和按钮，不做权限判断和身份切换。
+5. 数据：每个资源一个 `src/api/<资源>.ts`（读取函数用 `delay(假数据)`、查询键、hooks）和一个 `src/mocks/<资源>.ts`。列表的接口一次返回全部数据，表格自己分页。脚本生成的是通用字段（编号、名称、状态、负责人、更新时间、备注），照 PRD 改 mock 里的 `XxxRow` 和生成规则。假数据用 `src/mocks/gen.ts` 生成：二三十条，格式像样，各种状态都有，边界样例（超长名称、空值）用 `withEdges` 放进去；不需要真实，也不需要和验收标准或别的页面对得上。用法见 gen.ts 开头的例子。
 6. 四种状态：`delay()` 已经按地址里的 `?state=` 返回加载中、空、出错、无权限。脚本生成的页面已经接好；手写的读数据页面照下面接：
    - 加载中：`DataTable loading`，或和真实布局同尺寸的 `Skeleton`。
    - 空：`DataTable empty` 或 `EmptyState`（`empty` 只清空数组，单个对象照常返回）。列表分两种：一条数据都没有 →「还没有…」+ 新建按钮（`?state=empty` 看的是这种）；有数据但筛选后没有结果 →「没有符合条件的…」+ 清除筛选。
    - 出错、无权限：`if (isError) return <LoadFailed error={error} onRetry={() => refetch()} />`（`src/pages/errors/error-pages.tsx`）。
    - 详情、编辑页还要处理找不到：数据为空时显示 `NotFoundPage`。
    - 写法见样板：列表 `$K/src/pages/queries/query-list-page.tsx`，详情 `$K/src/pages/tables/table-detail-page.tsx`。
-7. 表单照 DESIGN.md 第 15 节：react-hook-form + zod，字段多的新建 / 编辑做整页表单。
+7. 按钮：打开弹窗、侧滑、下拉菜单的要能打开，内容照 PRD 画出来；跳转的（点行、新建、编辑、取消、返回）要能跳到对应页面；改数据的（保存、提交、通过、删除、弹窗里的确认）只弹一句 `toast` 提示，数据不变。
+8. 表单只画字段：字段多的新建 / 编辑做整页表单，布局照 DESIGN.md 第 15 节；不做校验，「保存」弹提示后回到列表。样板 `query-form-page.tsx` 里的 react-hook-form + zod 是给真实开发看的，原型不用照抄。
 
 ## 4. 命令（在 `docs/prototype/` 里）
 
