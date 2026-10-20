@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router';
 import { ArrowRight, Database, Download, FileSpreadsheet } from 'lucide-react';
 import { Badge, BarChart, Button, Card, IconButton, List, ListItem, PageBody, PageHeader, Progress, SegmentedControl, Skeleton, StatCard } from '@/components/ui';
 import { useOverview, type Range } from '@/api/overview';
+import { LoadFailed } from '@/pages/errors/error-pages';
 
 /** 概览页：指标行、单系列趋势、数据源状态、最近运行、用量。路由 `/`。 */
 export function OverviewPage() {
   const navigate = useNavigate();
   const [range, setRange] = React.useState<Range>('30d');
-  const { data, isPending } = useOverview(range);
+  const { data, isPending, isError, error, refetch } = useOverview(range);
+  // 加载中 → 同尺寸骨架；出错、无权限 → LoadFailed（原型里用 ?state= 切换）
+  if (isError) return <LoadFailed error={error} onRetry={() => refetch()} />;
   if (isPending || !data) return <OverviewSkeleton />;
   const { stats: st, weeks } = data;
   return (

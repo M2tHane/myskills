@@ -7,12 +7,13 @@ import {
   Input, List, ListItem, PageBody, PageHeader, SegmentedControl, Select, Skeleton, Switch, Tabs, TabsContent, TabsList, TabsTrigger, Textarea, toast,
 } from '@/components/ui';
 import { useTable, useTablePreview } from '@/api/tables';
+import { LoadFailed, NotFoundPage } from '@/pages/errors/error-pages';
 
 /** 详情页：页头（名称、状态、操作、子模块 Tabs）、带边框与简洁两种描述列表、字段表、编辑弹窗。路由 `/data/tables/:name`。 */
 export function TableDetailPage() {
   const { name = '' } = useParams();
   const navigate = useNavigate();
-  const { data: t, isPending } = useTable(name);
+  const { data: t, isPending, isError, error, refetch } = useTable(name);
   const [tab, setTab] = React.useState('overview');
   const preview = useTablePreview(name, tab === 'preview');
   const [editing, setEditing] = React.useState(false);
@@ -20,7 +21,10 @@ export function TableDetailPage() {
   const [notice, setNotice] = React.useState(true);
   const [view, setView] = React.useState('table');
 
-  if (isPending || !t) return <DetailSkeleton />;
+  // 四种状态：加载中 → 同尺寸骨架；出错、无权限 → LoadFailed；找不到 → 404（原型里用 ?state= 切换）
+  if (isError) return <LoadFailed error={error} onRetry={() => refetch()} />;
+  if (isPending) return <DetailSkeleton />;
+  if (!t) return <NotFoundPage />;
   const FIELDS = t.fields;
 
   return (

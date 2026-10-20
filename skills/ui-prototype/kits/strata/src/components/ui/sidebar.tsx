@@ -153,13 +153,16 @@ export function WorkspaceSwitch({ name, sub, logo, collapsed: forced, onClick }:
 }
 
 /** 侧栏底部的当前用户。收起时只剩头像，名字和角色进 Tooltip。 */
-export function SidebarUser({ name, role, avatar, onClick }: { name: string; role?: string; avatar?: React.ReactNode; onClick?: () => void }) {
+export interface SidebarUserProps extends React.ButtonHTMLAttributes<HTMLButtonElement> { name: string; role?: string; avatar?: React.ReactNode }
+
+/** 侧栏底部的当前用户。转发 ref 与其余属性，可以直接放进 DropdownMenuTrigger asChild 做用户菜单。 */
+export const SidebarUser = React.forwardRef<HTMLButtonElement, SidebarUserProps>(function SidebarUser({ name, role, avatar, className, ...props }, ref) {
   const { collapsed } = useSidebar();
   const face = avatar ?? <Avatar name={name} tone="primary" />;
   const btn = (
-    <button type="button" onClick={onClick} aria-label={collapsed ? name : undefined}
+    <button ref={ref} type="button" aria-label={collapsed ? name : undefined} {...props}
       className={cn('flex h-10 min-w-0 cursor-pointer items-center gap-2.5 overflow-hidden rounded-sm border-0 bg-transparent text-left font-sans outline-none hover:bg-surface-hover focus-visible:shadow-focus-ring',
-        collapsed ? 'size-10 justify-center px-0' : 'flex-1 px-1')}>
+        collapsed ? 'size-10 justify-center px-0' : 'flex-1 px-1', className)}>
       {face}
       {!collapsed && (
         <span className="flex min-w-0 flex-col">
@@ -170,4 +173,4 @@ export function SidebarUser({ name, role, avatar, onClick }: { name: string; rol
     </button>
   );
   return collapsed ? <Tooltip content={role ? `${name} · ${role}` : name} side="right">{btn}</Tooltip> : btn;
-}
+});

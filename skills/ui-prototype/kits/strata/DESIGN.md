@@ -200,7 +200,7 @@ Strata 是一套给后台、数据类产品用的界面风格：**白与灰是�
 | 组件 | 什么时候用 |
 |---|---|
 | `AppShell` | 应用外框。默认 `classic`：白色侧栏（右边框）+ 白色顶栏 + 灰画布内容区。`inset` 为备选。 |
-| `Sidebar` / `WorkspaceSwitch` / `SidebarUser` / `Mark` | 一级导航，可分组、可嵌套一层、带计数、可收起到 60px。头部用 `WorkspaceSwitch`，底部用 `SidebarUser`：收起时只剩图标和头像，名字进 Tooltip。自定义头部 / 底部时用 `useSidebar()` 读收起状态，不要让文字在 60px 里折行。 |
+| `Sidebar` / `WorkspaceSwitch` / `SidebarUser` / `Mark` | 一级导航，可分组、可嵌套一层、带计数、可收起到 60px。头部用 `WorkspaceSwitch`，底部用 `SidebarUser`（当前用户，点开是用户菜单）：收起时只剩图标和头像，名字进 Tooltip。自定义头部 / 底部时用 `useSidebar()` 读收起状态，不要让文字在 60px 里折行。 |
 | `Topbar` / `SearchTrigger` | 顶栏：左侧面包屑，右侧搜索、通知、帮助。`SearchTrigger` 点击或 ⌘K / Ctrl K 打开 `CommandPalette`。 |
 | `CommandPalette` / `useCommandShortcut` | 全局搜索与跳转：分组（页面、查询、数据表、操作），键盘上下选择、回车执行，关键词高亮，每组最多显示 `limit` 条。在 `app-layout.tsx` 里挂一次；「页面」组由导航自动生成，其余分组写在 `nav.tsx` 的 `useCommandGroups()`，数据从 `src/api/` 取。 |
 | `Breadcrumb` | **只放在顶栏**，显示完整路径（运营数据中心 › 数据资产 › 数据表 › orders_daily）。 |
@@ -392,13 +392,14 @@ theme.css、fonts/      token 与字体（原型里放在前端目录根部）
 src/
   app/
     routes.tsx        路由表（唯一）。每个页面一个路由，面包屑写在 handle.crumb
-    app-layout.tsx    外框：AppShell + Sidebar + Topbar + <Outlet />，面包屑在这里统一生成
-    nav.tsx           侧栏导航（key 就是路由路径）与命令面板分组 useCommandGroups()
+    app-layout.tsx    外框：AppShell + Sidebar + Topbar + <Outlet />，面包屑与用户菜单在这里统一生成；项目不改它
+    nav.tsx           外框文字 SHELL、侧栏导航 useNav()（key 就是路由路径，按角色过滤）、命令面板分组 useCommandGroups()、用户菜单 useUserMenu()
     providers.tsx     QueryClientProvider + Toaster
   pages/<模块>/<页面>.tsx   页面，只负责组合组件和调用 src/api
   api/<资源>.ts       接口层：fetch 函数 + 查询键 + useXxx hooks；类型也从这里导出
   api/query-client.ts 全局 QueryClient
-  mocks/              模拟数据与 delay()；只有 api/ 能引用
+  api/session.ts      当前用户：useCurrentUser()（页面）、getCurrentUser()（api）；接真实登录时只改它
+  mocks/              模拟数据与 delay()、演示账号 users.ts；只有 api/ 能引用
   stores/<名称>.ts    Zustand（只放跨页面的前端状态）
   components/ui/      Strata 组件；components/chart/ 等可选组件
   lib/utils.ts        cn()
@@ -421,6 +422,7 @@ src/
 - 失败：读取失败用 `LoadFailed`（`pages/errors/error-pages.tsx`）代替页面内容，403 显示无权限，其他显示「重试」；提交失败用 `toast({ tone: 'danger' })`，表单字段错误显示在对应 `Field` 下。
 - 删除给「撤销」：mutation 返回被删的数据，toast 的撤销按钮调用恢复接口。
 - 原型里 `delay()` 按地址的 `?state=loading | empty | error | forbidden` 返回四种状态（如 `#/queries?state=empty`），每个读数据的页面都要能正确显示这四种；接上真实接口后这个参数不再起作用。
+- 权限：页面按 `useCurrentUser()` 决定显示哪些导航和按钮，api 按 `getCurrentUser()` 过滤数据、拒绝没权限的读取（403）。原型里地址加 `?as=<演示账号 id>` 以这个身份打开，侧栏底部的用户菜单也能切换。
 
 ---
 

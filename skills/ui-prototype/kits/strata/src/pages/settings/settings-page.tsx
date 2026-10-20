@@ -9,6 +9,7 @@ import {
 import { owners, sources } from '@/api/queries';
 import { useSaveSettings, useSettings, type Settings } from '@/api/settings';
 import { UnsavedGuard } from '@/app/unsaved-guard';
+import { LoadFailed } from '@/pages/errors/error-pages';
 
 const SECTIONS = [
   { title: '工作区', items: [{ value: 'general', label: '常规', icon: <Building2 /> }, { value: 'notifications', label: '通知', icon: <Bell /> }] },
@@ -23,8 +24,9 @@ const LABEL_W = 136;
 export function SettingsPage() {
   const { section = 'general' } = useParams();
   const navigate = useNavigate();
-  const { data, isPending } = useSettings();
+  const { data, isPending, isError, error, refetch } = useSettings();
   if (!SECTIONS.some((s) => s.items.some((i) => i.value === section))) return <Navigate to="/settings/general" replace />;
+  if (isError) return <LoadFailed error={error} onRetry={() => refetch()} />;
   return (
     <>
       <PageHeader title="设置" />

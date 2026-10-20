@@ -3,6 +3,7 @@ import { isRouteErrorResponse, useLocation, useNavigate, useRouteError } from 'r
 import { ArrowLeft, FileQuestion, House, RotateCw, ShieldX, TriangleAlert } from 'lucide-react';
 import { Button, Mark } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { SHELL } from '@/app/nav';
 
 /**
  * 403 / 404 / 出错页。在外框内时占据内容区（侧栏与顶栏照常可用）；在外框外（standalone）时整页居中并带 Logo。
@@ -24,7 +25,7 @@ function StatusView({ icon, code, title, fact, actions, standalone, tone = 'neut
   if (!standalone) return <div className="flex min-h-full items-center justify-center px-6 pb-[12vh]">{body}</div>;
   return (
     <div className="flex flex-col bg-canvas font-sans" style={{ height: 'var(--app-height, 100vh)' }}>
-      <div className="flex h-(--header-height) items-center gap-2.5 border-b border-border bg-surface px-6"><Mark size={24} /><span className="text-body-sm font-semibold text-fg">运营数据中心</span></div>
+      <div className="flex h-(--header-height) items-center gap-2.5 border-b border-border bg-surface px-6"><Mark size={24} /><span className="text-body-sm font-semibold text-fg">{SHELL.workspace}</span></div>
       <div className="flex flex-1 items-center justify-center pb-[10vh]">{body}</div>
     </div>
   );

@@ -6,6 +6,10 @@ export interface BarChartProps {
   data: BarDatum[];
   height?: number;
   format?: (v: number) => string;
+  /** Y-axis labels when they should be shorter than the hover value (¥125万 vs ¥1,250,567.89). Defaults to format. */
+  tickFormat?: (v: number) => string;
+  /** Click a bar, e.g. switch the page to that month. Bars get a pointer cursor. */
+  onBarClick?: (index: number) => void;
   /** Index drawn in primary (default: the last, i.e. the current period). History bars are gray. */
   highlight?: number;
   /** Show every n-th x label. */
@@ -23,7 +27,7 @@ function niceMax(v: number) {
  * Single-series bar chart. History in gray-300, the current period in primary — blue only where it matters.
  * Thin bars with 4px rounded tops on the baseline, 2px gaps, three recessive grid lines, hover tooltip per bar.
  */
-export function BarChart({ data, height = 200, format = (v) => v.toLocaleString('zh-CN'), highlight, labelEvery = 5, className }: BarChartProps) {
+export function BarChart({ data, height = 200, format = (v) => v.toLocaleString('zh-CN'), tickFormat = format, onBarClick, highlight, labelEvery = 5, className }: BarChartProps) {
   const ref = React.useRef<HTMLDivElement>(null);
   const [w, setW] = React.useState(600);
   const [hover, setHover] = React.useState<number | null>(null);
@@ -35,19 +39,21 @@ export function BarChart({ data, height = 200, format = (v) => v.toLocaleString(
   }, []);
   const hl = highlight ?? data.length - 1;
   const left = 40, bottom = 22, top = 8;
-  const max = niceMax(Math.max(...data.map((d) => d.value)) * 1.05);
+  // 全部为 0（空数据）时只画基线，不算刻度
+  const peak = Math.max(0, ...data.map((d) => d.value));
+  const max = peak > 0 ? niceMax(peak * 1.05) : 1;
   const ih = height - top - bottom, iw = Math.max(0, w - left);
   const slot = iw / data.length;
   const bw = Math.max(2, slot - 2);
   const y = (v: number) => top + ih - (v / max) * ih;
-  const ticks = [0, max / 2, max];
+  const ticks = peak > 0 ? [0, max / 2, max] : [0];
   return (
     <div ref={ref} className={cn('relative w-full font-sans', className)} style={{ height }}>
       <svg width={w} height={height} role="img" aria-label={data.map((d) => `${d.label} ${format(d.value)}`).join('，')} className="block overflow-visible">
         {ticks.map((t) => (
           <g key={t}>
             <line x1={left} x2={w} y1={y(t)} y2={y(t)} stroke={t === 0 ? 'var(--border)' : 'var(--border-subtle)'} />
-            <text x={left - 8} y={y(t) + 4} textAnchor="end" fontSize={11} fill="var(--fg-subtle)" style={{ fontVariantNumeric: 'tabular-nums' }}>{format(t)}</text>
+            <text x={left - 8} y={y(t) + 4} textAnchor="end" fontSize={11} fill="var(--fg-subtle)" style={{ fontVariantNumeric: 'tabular-nums' }}>{tickFormat(t)}</text>
           </g>
         ))}
         {data.map((d, i) => {
@@ -58,7 +64,7 @@ export function BarChart({ data, height = 200, format = (v) => v.toLocaleString(
           const path = `M${x},${top + ih} V${yy + r} Q${x},${yy} ${x + r},${yy} H${x + bw - r} Q${x + bw},${yy} ${x + bw},${yy + r} V${top + ih} Z`;
           const fill = i === hl ? 'var(--primary)' : hover === i ? 'var(--gray-400)' : 'var(--gray-300)';
           return (
-            <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
+            <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onClick={onBarClick && (() => onBarClick(i))} className={onBarClick && 'cursor-pointer'}>
               <rect x={left + i * slot} y={top} width={slot} height={ih} fill="transparent" />
               <path d={path} fill={fill} />
               {i % labelEvery === 0 && <text x={x + bw / 2} y={height - 6} textAnchor="middle" fontSize={11} fill="var(--fg-subtle)">{d.label}</text>}

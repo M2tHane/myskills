@@ -39,7 +39,7 @@ export interface StatCardProps {
   label: React.ReactNode;
   value: React.ReactNode;
   unit?: React.ReactNode;
-  /** Signed change: “+12.4%”, “−0.3 s”. */
+  /** Signed change: “+12.4%”, “−0.3 s”. “—” when there is nothing to compare with (the previous period is 0): shown in gray without an arrow. */
   delta?: string;
   /** Whether the change is good news — colours the delta (耗时下降 = 绿，成功率下降 = 红). */
   deltaGood?: boolean;
@@ -54,6 +54,7 @@ export interface StatCardProps {
 /** KPI tile. At most four per row; no trend → no chart. */
 export function StatCard({ label, value, unit, delta, deltaGood, compare, trend, trendLabels, trendFormat, className }: StatCardProps) {
   const down = delta ? /^[-−]/.test(delta.trim()) : false;
+  const none = delta?.trim() === '—';
   return (
     <div className={cn('flex min-w-0 flex-col gap-1.5 rounded-md border border-border bg-surface px-4 py-3.5 font-sans shadow-card', className)}>
       <div className="text-body-sm text-fg-muted">{label}</div>
@@ -65,8 +66,8 @@ export function StatCard({ label, value, unit, delta, deltaGood, compare, trend,
       </div>
       {delta && (
         <div className="flex items-center gap-1.5 text-caption">
-          <span className={cn('inline-flex items-center gap-0.5 font-semibold tabular-nums [&_svg]:size-3', deltaGood ? 'text-success' : 'text-danger')}>
-            {down ? <ArrowDown strokeWidth={2.5} /> : <ArrowUp strokeWidth={2.5} />}{delta}
+          <span className={cn('inline-flex items-center gap-0.5 font-semibold tabular-nums [&_svg]:size-3', none ? 'text-fg-subtle' : deltaGood ? 'text-success' : 'text-danger')}>
+            {none ? null : down ? <ArrowDown strokeWidth={2.5} /> : <ArrowUp strokeWidth={2.5} />}{delta}
           </span>
           {compare != null && <span className="text-fg-subtle">{compare}</span>}
         </div>

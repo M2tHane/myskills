@@ -9,6 +9,7 @@ import {
 } from '@/components/ui';
 import { owners, sources, useCreateQuery, useDeleteQueries, useQueryDetail, useUpdateQuery } from '@/api/queries';
 import { useUnsavedGuard } from '@/app/unsaved-guard';
+import { LoadFailed, NotFoundPage } from '@/pages/errors/error-pages';
 
 /* ------------------------------------------------------------------ schema */
 
@@ -46,8 +47,11 @@ const EMPTY: Values = {
 export function QueryFormPage() {
   const { id } = useParams();
   const editing = !!id;
-  const { data, isPending } = useQueryDetail(id);
-  if (editing && (isPending || !data)) return <FormSkeleton />;
+  const { data, isPending, isError, error, refetch } = useQueryDetail(id);
+  // 编辑时要先读数据：出错、无权限 → LoadFailed；加载中 → 骨架；找不到 → 404
+  if (editing && isError) return <LoadFailed error={error} onRetry={() => refetch()} />;
+  if (editing && isPending) return <FormSkeleton />;
+  if (editing && !data) return <NotFoundPage />;
   const initial: Values = data
     ? { ...EMPTY, name: data.name, owner: data.owner, source: data.source, mode: data.schedule === '手动' ? 'manual' : 'scheduled', schedule: data.schedule === '手动' ? '' : data.schedule, sql: `SELECT region, SUM(pay_amount) AS gmv\nFROM orders_daily\nGROUP BY region;` }
     : EMPTY;

@@ -49,9 +49,10 @@ function parsePrd(md) {
   let fence = null;
   md.replace(/\r\n?/g, '\n').split('\n').forEach((rawLine, i) => {
     const text = rawLine.trim();
-    if (fence) { if (new RegExp(`^${fence}+$`).test(text)) fence = null; return; }
-    const f = /^(`{3,}|~{3,})/.exec(text);
-    if (f) { fence = f[1][0] === '`' ? '`{3,}' : '~{3,}'; return; }
+    // 围栏规则同 pi-forge：结束围栏与开头同一种字符、长度不少于开头、后面没有别的内容
+    if (fence) { const m = /^(`{3,}|~{3,})$/.exec(text); if (m && m[1][0] === fence.char && m[1].length >= fence.len) fence = null; return; }
+    const f = /^(`{3,}|~{3,})(.*)$/.exec(text);
+    if (f && !(f[1][0] === '`' && f[2].includes('`'))) { fence = { char: f[1][0], len: f[1].length }; return; }
     const row = cells(text);
     if (!row || (table?.piped && !text.startsWith('|'))) table = null;
     const heading = /^(#{1,6})\s+(.*)$/.exec(text);
@@ -105,7 +106,11 @@ else {
   const md = readFileSync(abs(ARCH), 'utf8');
   const m = /^##\s*(?:[\d.、]+\s*)?前端\s*$([\s\S]*?)(?=^##\s|(?![\s\S]))/m.exec(md);
   if (!m) errors.push(`${ARCH} 里没有「前端」一节`);
-  else if (/由\s*ui-prototype\s*负责/.test(m[1]) || !m[1].trim()) errors.push(`${ARCH} 的「前端」一节还没填：换成套件 KIT.md 里的「技术栈与版本」`);
+  else if (/ui-prototype/.test(m[1]) || !m[1].trim()) errors.push(`${ARCH} 的「前端」一节还没填：换成套件 KIT.md 里的「技术栈与版本」`);
+  // 其他节里留给原型 skill 的占位（如「前端的测试与检查由 ui-prototype 填写」）
+  md.split('\n').forEach((line, i) => {
+    if (/由\s*ui-prototype\s*(负责|填写|填)/.test(line) && !(m && m[1].includes(line))) errors.push(`${ARCH} 第 ${i + 1} 行还留着给 ui-prototype 的占位：删掉这一行，前端的检查已经写在「前端」一节`);
+  });
 }
 
 // —— 原型目录：pi-forge 开始前检查的文件，以及读取时的限制 ——
