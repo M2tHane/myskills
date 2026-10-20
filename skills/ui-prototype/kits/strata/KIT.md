@@ -35,7 +35,7 @@ cp -R $K/src/components/ui $P/src/components/
 cp $K/src/lib/utils.ts $P/src/lib/
 cp $K/src/app/app-layout.tsx $K/src/app/providers.tsx $K/src/app/unsaved-guard.tsx $P/src/app/
 cp $K/src/api/query-client.ts $K/src/api/errors.ts $K/src/api/session.ts $P/src/api/
-cp $K/src/mocks/delay.ts $K/src/mocks/users.ts $P/src/mocks/
+cp $K/src/mocks/delay.ts $K/src/mocks/users.ts $K/src/mocks/gen.ts $P/src/mocks/
 cp $K/src/pages/errors/error-pages.tsx $P/src/pages/errors/
 cd $P && npm ci && npm run typecheck
 ```
@@ -60,7 +60,7 @@ cd $P && npm ci && npm run typecheck
    - 写法见样板：`$K/src/api/members.ts`、`$K/src/pages/members/member-list-page.tsx`、`$K/src/app/nav.tsx` 的 `useNav`（管理员能看成员列表；数据分析看不到入口，直接打开显示无权限）。
    - 侧栏底部的用户菜单可以切换演示身份；地址加 `?as=<账号 id>` 直接以这个身份打开（如 `#/suppliers?as=chenjing`），切换后数据会重新请求。
    - 只有一个角色时保留一个演示账号即可，菜单里不会出现切换。
-5. 数据：每个资源一个 `src/api/<资源>.ts`（fetch 函数用 `delay(假数据)`、查询键、hooks）和一个 `src/mocks/<数据>.ts`。假数据照 PRD 页面规格的「假数据」写：条数、各状态占比、边界样例都要有。
+5. 数据：每个资源一个 `src/api/<资源>.ts`（fetch 函数用 `delay(假数据)`、查询键、hooks）和一个 `src/mocks/<资源>.ts`。假数据用 `src/mocks/gen.ts` 生成（固定种子，刷新不变），条数和各状态占比照 PRD 页面规格的「假数据」写（`pick` 的比例是精确的）；边界样例（超长名称、空值、极大数值）用 `withEdges` 放到固定位置。用法见 gen.ts 开头的例子。
 6. 四种状态：`delay()` 已经按地址里的 `?state=` 返回加载中、空、出错、无权限。每个读数据的页面都要接上：
    - 加载中：`DataTable loading`，或和真实布局同尺寸的 `Skeleton`。
    - 空：`DataTable empty` 或 `EmptyState`（`empty` 只清空数组，单个对象照常返回）。列表分两种：一条数据都没有 →「还没有…」+ 新建按钮（`?state=empty` 看的是这种）；有数据但筛选后没有结果 →「没有符合条件的…」+ 清除筛选。

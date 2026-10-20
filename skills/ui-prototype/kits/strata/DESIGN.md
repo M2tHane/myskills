@@ -401,7 +401,7 @@ src/
   api/query-client.ts 全局 QueryClient
   api/errors.ts       ApiError（接口报错，带 HTTP 状态码）；mocks 的 fail() 也抛它
   api/session.ts      当前用户：useCurrentUser()（页面）、getCurrentUser()（api）；接真实登录时只改它
-  mocks/              模拟数据与 delay()、演示账号 users.ts；只有 api/ 能引用
+  mocks/              模拟数据与 delay()、演示账号 users.ts、假数据生成器 gen.ts；只有 api/ 能引用
   stores/<名称>.ts    Zustand（只放跨页面的前端状态）
   components/ui/      Strata 组件；components/chart/ 等可选组件
   lib/utils.ts        cn()

@@ -19,7 +19,7 @@ ui-prototype 的一套 UI 套件：做原型时 agent 读 [KIT.md](KIT.md)，照
 | `src/lib/utils.ts` | `cn()` |
 | `src/app/` | 应用骨架：路由表、外框、导航、Provider、离开确认 |
 | `src/pages/` | 页面样板：列表、表单、详情、概览、设置、向导、登录、403 / 404、读取失败 |
-| `src/api/` + `src/mocks/` | 接口层样板与演示数据（只有 api 能引用 mocks）；`delay()` 支持 `?state=` 切换四种状态；`session.ts` + `users.ts` 是当前用户与演示账号，支持 `?as=` 切换身份；`errors.ts` 是接口报错 `ApiError`；`members.ts` 是按角色控制权限的样板 |
+| `src/api/` + `src/mocks/` | 接口层样板与演示数据（只有 api 能引用 mocks）；`delay()` 支持 `?state=` 切换四种状态；`session.ts` + `users.ts` 是当前用户与演示账号，支持 `?as=` 切换身份；`errors.ts` 是接口报错 `ApiError`；`members.ts` 是按角色控制权限的样板；`mocks/gen.ts` 是固定种子的假数据生成器 |
 | `prototypes/` | 样板的单文件 HTML 成品 |
 | `scripts/check.mjs` | 规范检查，不需要安装依赖 |
 | `dev/` | 维护工具：组件总览、重新生成 `prototypes/` |
