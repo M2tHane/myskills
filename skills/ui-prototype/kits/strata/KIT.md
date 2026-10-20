@@ -34,7 +34,7 @@ cp $K/scripts/check.mjs $K/scripts/new-page.mjs $K/scripts/shoot.mjs $P/scripts/
 cp $K/templates/* $P/scripts/templates/
 cp -R $K/src/components/ui $P/src/components/
 cp $K/src/lib/utils.ts $P/src/lib/
-cp $K/src/app/app-layout.tsx $K/src/app/providers.tsx $K/src/app/unsaved-guard.tsx $P/src/app/
+cp $K/src/app/app-layout.tsx $K/src/app/providers.tsx $K/src/app/unsaved-guard.tsx $K/src/app/state-bar.tsx $P/src/app/
 cp $K/src/api/query-client.ts $K/src/api/errors.ts $K/src/api/session.ts $P/src/api/
 cp $K/src/mocks/delay.ts $K/src/mocks/users.ts $K/src/mocks/gen.ts $P/src/mocks/
 cp $K/src/pages/errors/error-pages.tsx $P/src/pages/errors/
@@ -69,7 +69,7 @@ cd $P && npm ci && npm run typecheck
    - `src/mocks/users.ts`：只留一个演示账号，写 PRD 里权限最大的那个角色。
 4. 不分角色：PRD 有多个角色时，按权限最大的角色显示全部页面、导航和按钮，不做权限判断和身份切换。
 5. 数据：每个资源一个 `src/api/<资源>.ts`（读取函数用 `delay(假数据)`、查询键、hooks）和一个 `src/mocks/<资源>.ts`。列表的接口一次返回全部数据，表格自己分页。脚本生成的是通用字段（编号、名称、状态、负责人、更新时间、备注），照 PRD 改 mock 里的 `XxxRow` 和生成规则。假数据用 `src/mocks/gen.ts` 生成：二三十条，格式像样，各种状态都有，边界样例（超长名称、空值）用 `withEdges` 放进去；不需要真实，也不需要和验收标准或别的页面对得上。用法见 gen.ts 开头的例子。
-6. 四种状态：`delay()` 已经按地址里的 `?state=` 返回加载中、空、出错、无权限。脚本生成的页面已经接好；手写的读数据页面照下面接：
+6. 四种状态：`delay()` 已经按地址里的 `?state=` 返回加载中、空、出错、无权限；顶栏正中有切换条（`src/app/state-bar.tsx`，原型专用），点一下就能切换。脚本生成的页面已经接好；手写的读数据页面照下面接：
    - 加载中：`DataTable loading`，或和真实布局同尺寸的 `Skeleton`。
    - 空：`DataTable empty` 或 `EmptyState`（`empty` 只清空数组，单个对象照常返回）。列表分两种：一条数据都没有 →「还没有…」+ 新建按钮（`?state=empty` 看的是这种）；有数据但筛选后没有结果 →「没有符合条件的…」+ 清除筛选。
    - 出错、无权限：`if (isError) return <LoadFailed error={error} onRetry={() => refetch()} />`（`src/pages/errors/error-pages.tsx`）。

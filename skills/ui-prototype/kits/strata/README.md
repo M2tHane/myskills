@@ -17,7 +17,7 @@ ui-prototype 的一套 UI 套件：做原型时 agent 读 [KIT.md](KIT.md)，照
 | `src/components/ui/` | 约 45 个组件 |
 | `src/components/optional/` | 可选组件（可拖动分栏、ECharts 图表），需要额外的库，用到才复制 |
 | `src/lib/utils.ts` | `cn()` |
-| `src/app/` | 应用骨架：路由表、外框、导航、Provider、离开确认 |
+| `src/app/` | 应用骨架：路由表、外框、导航、Provider、离开确认、原型专用的状态切换条 |
 | `src/pages/` | 页面样板：列表、表单、详情、概览、设置、向导、登录、403 / 404、读取失败 |
 | `src/api/` + `src/mocks/` | 接口层样板与演示数据（只有 api 能引用 mocks）；`delay()` 支持 `?state=` 切换四种状态；`session.ts` + `users.ts` 是当前用户与演示账号，支持 `?as=` 切换身份；`errors.ts` 是接口报错 `ApiError`；`members.ts` 是按角色控制权限的样板；`mocks/gen.ts` 是固定种子的假数据生成器 |
 | `prototypes/` | 样板的单文件 HTML 成品 |

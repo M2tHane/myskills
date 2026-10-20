@@ -6,7 +6,7 @@
 
 - 双击 `app.html`：完整的可点击原型，数据是假的。
 - 每个页面一个 `<页面id>.html`，和 PRD 页面表的「原型文件」一致；打开后跳到 `app.html` 里的对应页面，文件里的注释写了这一页的源码位置。
-- 四种状态：在地址后面加 `?state=loading`、`empty`、`error` 或 `forbidden`，例如 `app.html#/queries?state=empty`。
+- 四种状态：点顶栏正中的切换条（正常 / 加载中 / 空数据 / 出错 / 无权限），或在地址后面加 `?state=loading`、`empty`、`error`、`forbidden`，例如 `app.html#/queries?state=empty`。
 
 ## 目录
 

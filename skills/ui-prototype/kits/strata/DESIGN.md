@@ -396,6 +396,7 @@ src/
     app-layout.tsx    外框：AppShell + Sidebar + Topbar + <Outlet />，面包屑与用户菜单在这里统一生成；项目不改它
     nav.tsx           外框文字 SHELL、侧栏导航 useNav()（key 就是路由路径，按角色过滤）、命令面板分组 useCommandGroups()、用户菜单 useUserMenu()
     providers.tsx     QueryClientProvider + Toaster
+    state-bar.tsx     原型专用：顶栏正中的四种状态切换，正式产品删掉它和 main.tsx 里挂它的那一行
   pages/<模块>/<页面>.tsx   页面，只负责组合组件和调用 src/api
   api/<资源>.ts       接口层：fetch 函数 + 查询键 + useXxx hooks；类型也从这里导出
   api/query-client.ts 全局 QueryClient
