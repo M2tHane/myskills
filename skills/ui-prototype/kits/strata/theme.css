@@ -1,0 +1,366 @@
+/*
+ * Strata — theme.css
+ * 白与灰为体，蓝色只落在关键处。
+ *
+ * The single source of every visual value in Strata: colour, type, radius, shadow, size, motion.
+ * Components never hard-code a value; they reference these variables through Tailwind utilities
+ * (bg-surface, text-fg-muted, shadow-card, rounded-md, text-body …) or var(--token).
+ *
+ * Usage (Tailwind v4):
+ *   @import "tailwindcss";
+ *   @import "./theme.css";
+ *
+ * Tailwind's default palette, font sizes, radii and shadows are REMOVED below, so utilities such as
+ * bg-blue-500, text-sm, rounded-xl or shadow-lg do not exist in a Strata project. Use the tokens.
+ */
+
+/* ------------------------------------------------------------------ fonts */
+@font-face { font-family: "Geist"; src: url("./fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Geist Mono"; src: url("./fonts/GeistMono-Variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+/* ----------------------------------------------------------------- tokens */
+:root {
+  /* primitives — not exposed as utilities; reach them with var(--gray-400) only inside components */
+  --gray-0: #ffffff;
+  --gray-25: #f8f9fa;
+  --gray-50: #f5f6f8;
+  --gray-100: #eef0f3;
+  --gray-150: #e6e9ee;
+  --gray-200: #dde1e7;
+  --gray-300: #c9cfd8;
+  --gray-400: #a6aebb;
+  --gray-500: #677080;
+  --gray-600: #5c6575;
+  --gray-700: #434b59;
+  --gray-800: #2c323d;
+  --gray-900: #181c23;
+  --gray-950: #0f1217;
+  --blue-50: #f2f6fd;
+  --blue-100: #e4ecfa;
+  --blue-200: #c9d8f5;
+  --blue-300: #a1bbec;
+  --blue-400: #6f94dd;
+  --blue-500: #4573cd;
+  --blue-600: #2e5bba;
+  --blue-700: #254a9b;
+  --blue-800: #1f3c7c;
+  --blue-900: #1b3163;
+
+  /* semantic colours — use these */
+  --canvas: var(--gray-50); /* 应用的页面画布（L0）。所有白色表面都放在它上面。 */
+  --surface: var(--gray-0); /* 卡片、面板、表格、侧边栏（L1）。 */
+  --surface-sunken: var(--gray-25); /* 表面内部的下沉区：指标井、表头、代码块（L1 内的 -1 层）。 */
+  --surface-raised: var(--gray-0); /* 下拉菜单、气泡、弹窗（L2/L3）。 */
+  --surface-hover: var(--gray-50); /* 白色表面上可点击行、项的悬停底色。 */
+  --surface-active: var(--gray-100); /* 按下态底色。 */
+  --surface-selected: var(--blue-50); /* 选中行、当前导航项的底色。 */
+  --border-subtle: var(--gray-150); /* 表面内部的分隔线、表格行线。 */
+  --border: var(--gray-200); /* 卡片、面板、浮层的外轮廓。 */
+  --border-strong: var(--gray-300); /* 按钮与输入框边框（白底 1.6:1，控件另有内阴影与标签辨识，低于 3:1）。 */
+  --fg: var(--gray-900); /* 主文字，用在 surface、canvas、surface-sunken 上。 */
+  --fg-muted: var(--gray-600); /* 次要文字：表头、标签、说明性数值，用在 surface、canvas 上（≥5.4:1）。 */
+  --fg-subtle: var(--gray-500); /* 辅助文字：时间戳、单位、计数，用在 surface、canvas 上（≥4.6:1）。 */
+  --fg-disabled: var(--gray-400); /* 禁用态文字与图标，不承载需要阅读的信息。 */
+  --fg-inverse: var(--gray-0); /* 深色填充（gray-800、primary）上的文字。 */
+  --primary: var(--blue-600); /* 主操作填充、链接、选中态的文字与图标。每屏只给最关键的一处主按钮。 */
+  --primary-hover: var(--blue-700); /* 主色悬停；也作主按钮的 1px 描边。 */
+  --primary-active: var(--blue-800); /* 主色按下。 */
+  --primary-fg: #ffffff; /* 主色填充上的文字与图标（6.3:1）。 */
+  --primary-soft: var(--blue-50); /* 浅蓝底：选中项、蓝色标签、信息提示。 */
+  --primary-soft-hover: var(--blue-100); /* 浅蓝底的悬停。 */
+  --primary-line: var(--blue-200); /* 浅蓝描边：选中卡片、蓝色标签的边。 */
+  --ring: var(--blue-500); /* 焦点环与聚焦边框颜色，canvas 上 4.2:1。 */
+  --link: var(--blue-600); /* 文字链接，surface 与 canvas 上 ≥5.9:1。 */
+  --success: #1a7f52; /* 成功文字与图标，用在 surface、success-soft 上（≥4.5:1）。 */
+  --success-soft: #edf7f2; /* 成功提示底色。 */
+  --success-line: #bfe3d0; /* 成功提示描边。 */
+  --warning: #a35f00; /* 警告文字与图标，用在 surface、warning-soft 上（≥4.6:1）。 */
+  --warning-soft: #fdf6e9; /* 警告提示底色。 */
+  --warning-line: #f1d9a8; /* 警告提示描边。 */
+  --danger: #c43a31; /* 错误、删除类文字与图标，用在 surface、danger-soft 上（≥4.7:1）；危险按钮填充。 */
+  --danger-soft: #fdf1f0; /* 错误提示底色。 */
+  --danger-line: #f3c9c5; /* 错误提示描边；禁用危险按钮底色。 */
+  --danger-hover: #ad3229; /* 危险按钮悬停；也作危险按钮的 1px 描边。 */
+  --danger-active: #962a22; /* 危险按钮按下。 */
+  --info: var(--blue-600); /* 信息提示文字与图标，等同主色。 */
+  --info-soft: var(--blue-50); /* 信息提示底色。 */
+  --info-line: var(--blue-200); /* 信息提示描边。 */
+  --tooltip: var(--gray-800); /* Tooltip 底色，上面用 fg-inverse 文字（12.9:1）。 */
+  --tooltip-fg-muted: var(--gray-300); /* Tooltip 内快捷键等次要文字，tooltip 底上 8.2:1。 */
+  --tooltip-key: #ffffff1a; /* Tooltip 内快捷键键帽底色。 */
+  --tooltip-key-line: #ffffff26; /* Tooltip 内快捷键键帽描边。 */
+  --scrim-soft: #0f121724; /* 侧滑面板背后的轻遮罩（gray-950 · 14%），不模糊。 */
+  --scrim: #0f121752; /* 弹窗、抽屉背后的遮罩（gray-950 · 32%）。 */
+
+  /* shadows — elevation is border + shadow + highlight together */
+  --shadow-xs: 0 1px 2px #1018280d; /* 小签、徽标的轻微抬起。 */
+  --shadow-control: 0 1px 2px #1018280f, inset 0 -1px 0 #1018280a; /* 次按钮等白色控件：外部轻投影 + 底部内阴影，形成按压感。 */
+  --shadow-primary: inset 0 1px 0 #ffffff29, inset 0 -1px 0 #0b1f4d33, 0 1px 2px #1f3c7c40; /* 主按钮材质：顶部高光、底部内阴影、蓝调投影。 */
+  --shadow-danger: inset 0 1px 0 #ffffff29, inset 0 -1px 0 #4d0b0b33, 0 1px 2px #7c1f1f40; /* 危险按钮材质，结构同 shadow-primary。 */
+  --shadow-press-primary: inset 0 1px 2px #0b1f4d59; /* 主按钮按下时的下陷。 */
+  --shadow-press-danger: inset 0 1px 2px #4d0b0b59; /* 危险按钮按下时的下陷。 */
+  --shadow-ring-subtle: 0 0 0 1px #1018280d; /* 分段控件选中块等浮起小块的极细外轮廓。 */
+  --shadow-card: 0 1px 2px #1018280a, 0 2px 6px -2px #1018280d; /* L1 表面：卡片、面板、表格容器。 */
+  --shadow-raised: 0 2px 4px -2px #1018280f, 0 8px 16px -4px #10182814; /* L2 浮起：下拉菜单、气泡、悬浮卡片。 */
+  --shadow-overlay: 0 12px 24px -8px #1018281a, 0 32px 64px -16px #10182829; /* L3 覆盖：弹窗、抽屉。 */
+  --shadow-inset: inset 0 1px 2px #1018280f; /* 下沉区、输入框内部、按下态。 */
+  --highlight-top: inset 0 1px 0 #ffffffcc; /* 画布上的白色元素顶部高光，与外阴影叠用。 */
+  --shadow-fill-highlight: inset 0 1px 0 #ffffff33; /* 进度条等彩色填充顶部的细高光。 */
+  --hover-tint: #1018280f; /* 彩色浅底（Alert）上关闭按钮的悬停底色。 */
+  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #4573cd; /* 键盘焦点：2px 白色间隙 + 2px ring 实色环，跟随圆角。 */
+  --focus-ring-danger: 0 0 0 2px #ffffff, 0 0 0 4px #c43a31; /* 危险按钮的键盘焦点环。 */
+  --focus-input: 0 0 0 3px #4573cd2e; /* 输入框聚焦外晕，配合 ring 色 1px 边框。 */
+  --focus-input-danger: 0 0 0 3px #c43a3124; /* 校验失败的输入框聚焦外晕，配合 danger 色边框。 */
+  --shadow-thumb: 0 1px 2px #10182833, 0 0 0 0.5px #1018280f; /* 开关滑块的投影。 */
+
+  /* radius */
+  --radius-xs: 4px; /* 复选框、徽标、序号签。 */
+  --radius-sm: 6px; /* 按钮、输入框、下拉项。 */
+  --radius-md: 8px; /* 卡片、面板、下拉菜单。 */
+  --radius-lg: 12px; /* 弹窗、抽屉、大面板。 */
+  --radius-full: 9999px; /* 开关、头像、圆点。 */
+
+  /* sizes — compact density */
+  --control-sm: 28px; /* 工具栏、表格内按钮。 */
+  --control-md: 32px; /* 默认按钮、输入框、下拉框。 */
+  --control-lg: 36px; /* 表单页主操作、登录等独立场景。 */
+  --row-compact: 36px; /* 密集表格行高。 */
+  --row: 40px; /* 默认表格行高、列表项高度。 */
+  --header-height: 52px; /* 顶栏高度。 */
+  --sidebar-width: 232px; /* 侧边栏展开宽度。 */
+
+  /* type */
+  --font-sans-stack: "Geist", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --font-mono-stack: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* charts — 分类色按 1→8 固定顺序分配，不循环；颜色跟随实体，不跟随排名。已通过色盲安全校验（相邻色在红绿色盲模拟下 ΔE ≥ 10.8，正常视觉 ΔE ≥ 15.5，白底对比 ≥ 3.3:1）。 */
+  --chart-1: var(--blue-600); /* 石板蓝，第一个系列；也是单系列与「当前值」的强调色。 */
+  --chart-2: #b88138; /* 赭黄 */
+  --chart-3: #1f9e8f; /* 青绿 */
+  --chart-4: #7765ae; /* 灰紫 */
+  --chart-5: #c36b7d; /* 玫瑰 */
+  --chart-6: #3b8fc3; /* 湖蓝 */
+  --chart-7: #69974f; /* 橄榄绿 */
+  --chart-8: #985a93; /* 梅紫 */
+  --chart-muted: var(--gray-300); /* 强调模式下的其余数据：历史柱、对比期、非重点系列。 */
+  --chart-muted-hover: var(--gray-400); /* 灰色数据的悬停色。 */
+  --chart-grid: var(--border-subtle); /* 网格线：1px 实线，不用虚线。 */
+  --chart-axis: var(--border); /* 坐标轴基线。 */
+  --chart-label: var(--fg-subtle); /* 坐标轴刻度文字。 */
+  --chart-seq-1: var(--blue-100); /* 顺序色阶（热力图、分级）：单一蓝色，浅 → 深。 */
+  --chart-seq-2: var(--blue-200);
+  --chart-seq-3: var(--blue-300);
+  --chart-seq-4: var(--blue-400);
+  --chart-seq-5: var(--blue-500);
+  --chart-seq-6: var(--blue-700);
+  --chart-seq-7: var(--blue-900);
+  --chart-ord-1: var(--blue-800); /* 有序色阶（漏斗阶段、等级）：深 → 浅，最浅一档对白底仍 ≥ 2:1。 */
+  --chart-ord-2: var(--blue-600);
+  --chart-ord-3: var(--blue-500);
+  --chart-ord-4: var(--blue-400);
+  --chart-ord-5: #8fade6;
+  --chart-div-neg: #c0563f; /* 发散色负向一端（低于基准）。正向一端用 chart-1，中点用 chart-div-mid。 */
+  --chart-div-mid: var(--gray-100);
+
+  /* shadcn/ui compatibility — the names shadcn components and blocks expect */
+  --background: var(--canvas);
+  --foreground: var(--fg);
+  --card: var(--surface);
+  --card-foreground: var(--fg);
+  --popover: var(--surface-raised);
+  --popover-foreground: var(--fg);
+  --primary-foreground: var(--primary-fg);
+  --secondary: var(--surface-active);
+  --secondary-foreground: var(--fg);
+  --muted: var(--surface-sunken);
+  --muted-foreground: var(--fg-muted);
+  --accent: var(--surface-hover);
+  --accent-foreground: var(--fg);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--primary-fg);
+  --input: var(--border-strong);
+  --radius: var(--radius-md);
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--fg-muted);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-fg);
+  --sidebar-accent: var(--surface-selected);
+  --sidebar-accent-foreground: var(--primary-hover);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+/* -------------------------------------------- remove Tailwind's defaults */
+@theme {
+  --color-*: initial;
+  --text-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --font-*: initial;
+}
+
+/* --------------------------------------------- expose tokens to Tailwind */
+@theme inline {
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #ffffff;
+  --color-inherit: inherit;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+  --color-surface-selected: var(--surface-selected);
+  --color-border-subtle: var(--border-subtle);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-fg-disabled: var(--fg-disabled);
+  --color-fg-inverse: var(--fg-inverse);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-hover: var(--primary-soft-hover);
+  --color-primary-line: var(--primary-line);
+  --color-ring: var(--ring);
+  --color-link: var(--link);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-line: var(--success-line);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-line: var(--warning-line);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-line: var(--danger-line);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-active: var(--danger-active);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-line: var(--info-line);
+  --color-tooltip: var(--tooltip);
+  --color-tooltip-fg-muted: var(--tooltip-fg-muted);
+  --color-tooltip-key: var(--tooltip-key);
+  --color-tooltip-key-line: var(--tooltip-key-line);
+  --color-scrim-soft: var(--scrim-soft);
+  --color-scrim: var(--scrim);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-chart-muted: var(--chart-muted);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-control: var(--shadow-control);
+  --shadow-primary: var(--shadow-primary);
+  --shadow-danger: var(--shadow-danger);
+  --shadow-press-primary: var(--shadow-press-primary);
+  --shadow-press-danger: var(--shadow-press-danger);
+  --shadow-ring-subtle: var(--shadow-ring-subtle);
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-overlay: var(--shadow-overlay);
+  --shadow-inset: var(--shadow-inset);
+  --shadow-highlight-top: var(--highlight-top);
+  --shadow-fill-highlight: var(--shadow-fill-highlight);
+  --shadow-focus-ring: var(--focus-ring);
+  --shadow-focus-ring-danger: var(--focus-ring-danger);
+  --shadow-focus-input: var(--focus-input);
+  --shadow-focus-input-danger: var(--focus-input-danger);
+  --shadow-thumb: var(--shadow-thumb);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
+
+  /* type scale — text-<name> sets size + line-height */
+  --text-badge: 10px;     --text-badge--line-height: 12px;
+  --text-micro: 11px;     --text-micro--line-height: 16px;
+  --text-caption: 12px;   --text-caption--line-height: 16px;
+  --text-body-sm: 13px;   --text-body-sm--line-height: 20px;
+  --text-body: 14px;      --text-body--line-height: 22px;
+  --text-code: 12.5px;    --text-code--line-height: 20px;
+  --text-title-3: 15px;   --text-title-3--line-height: 22px;
+  --text-heading: 16px;   --text-heading--line-height: 24px;
+  --text-title-2: 18px;   --text-title-2--line-height: 26px;
+  --text-title-1: 22px;   --text-title-1--line-height: 30px;
+  --text-num-lg: 26px;    --text-num-lg--line-height: 32px;
+  --text-display: 28px;   --text-display--line-height: 36px;
+
+  /* motion */
+  --animate-fade-in: st-fade-in 140ms ease-out;
+  --animate-pop-in: st-pop-in 120ms ease-out;
+  --animate-rise-in: st-rise-in 160ms ease-out;
+  --animate-slide-in-right: st-slide-in-right 200ms ease-out;
+  --animate-toast-in: st-toast-in 200ms ease-out;
+  --animate-spin: st-spin 800ms linear infinite;
+  --animate-skeleton: st-skeleton 1.4s ease-in-out infinite;
+  --animate-indeterminate: st-indeterminate 1.3s ease-in-out infinite;
+}
+
+@keyframes st-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes st-pop-in { from { opacity: 0; transform: translateY(-2px); } to { opacity: 1; transform: none; } }
+@keyframes st-rise-in { from { opacity: 0; transform: translateY(6px) scale(.99); } to { opacity: 1; transform: none; } }
+@keyframes st-slide-in-right { from { opacity: .6; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes st-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes st-spin { to { transform: rotate(360deg); } }
+@keyframes st-skeleton { 0%, 100% { background-color: var(--surface-active); } 50% { background-color: var(--gray-150); } }
+@keyframes st-indeterminate { 0% { left: -36%; } 100% { left: 100%; } }
+
+/* ------------------------------------------------------------------- base */
+@layer base {
+  *, ::before, ::after { border-color: var(--border); }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-sans-stack);
+    font-size: 14px;
+    line-height: 22px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection { background: var(--blue-100); color: var(--fg); }
+  :focus-visible { outline: none; }
+}
