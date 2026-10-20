@@ -16,6 +16,7 @@ export const routes: RouteObject[] = [
     errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <PageHeader title="概览" />, handle: h({ crumb: '概览' }) },
+      // @new-page:routes  scripts/new-page.mjs 把新页面的路由插在这一行前面，不要删
       { path: '*', element: <NotFoundPage />, handle: h({ crumb: '页面不存在' }) },
     ],
   },

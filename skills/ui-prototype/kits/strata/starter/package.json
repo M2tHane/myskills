@@ -6,6 +6,7 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "check:ui": "node scripts/check.mjs src",
+    "new-page": "node scripts/new-page.mjs",
     "build:html": "vite build --outDir .build --emptyOutDir && node -e \"const f=require('fs');f.renameSync('.build/index.html','app.html');f.rmSync('.build',{recursive:true})\""
   },
   "dependencies": {

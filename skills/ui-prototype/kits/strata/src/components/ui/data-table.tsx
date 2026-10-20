@@ -25,6 +25,8 @@ export interface Column<T> {
   numeric?: boolean;
 }
 
+export interface DataTableSort { key: string; dir: 'asc' | 'desc' }
+
 export interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
@@ -32,10 +34,21 @@ export interface DataTableProps<T> {
   selectable?: boolean;
   defaultSelected?: string[];
   onSelectionChange?: (keys: string[]) => void;
-  defaultSort?: { key: string; dir: 'asc' | 'desc' };
+  defaultSort?: DataTableSort;
   /** 10 / 20 / 50 / 100. */
   pageSize?: number;
   pagination?: boolean;
+  /**
+   * 服务端分页：传了 total，data 就只是当前页，表格不再自己排序和切分。
+   * page、pageSize、sort 由页面保存并随请求发给接口，变化时通过下面三个回调通知页面。
+   */
+  total?: number;
+  page?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
+  /** 受控排序（传了 onSortChange 时生效）；undefined 表示不排序。 */
+  sort?: DataTableSort;
+  onSortChange?: (sort: DataTableSort | undefined) => void;
   /** Search, filters, export, the primary action. */
   toolbar?: React.ReactNode;
   /** Replaces the toolbar while rows are selected. */
@@ -78,26 +91,34 @@ function fitWidths<T>(columns: Column<T>[], avail: number): number[] {
 /** Table in an L1 card: toolbar → sunken header → 40px rows → pagination flush with the bottom. */
 export function DataTable<T>({
   columns, data, rowKey, selectable, defaultSelected = [], onSelectionChange, defaultSort, pageSize = 10, pagination = true,
+  total, page: pageProp, onPageChange, onPageSizeChange, sort: sortProp, onSortChange,
   toolbar, bulkActions, rowActions, onRowClick, activeRowKey, loading, empty, density = 'default', maxHeight, className,
 }: DataTableProps<T>) {
+  const server = total != null;
   const [sel, setSel] = React.useState<string[]>(defaultSelected);
-  const [sort, setSort] = React.useState(defaultSort);
-  const [page, setPage] = React.useState(1);
-  const [size, setSize] = React.useState(pageSize);
+  const [sortState, setSortState] = React.useState(defaultSort);
+  const [pageState, setPageState] = React.useState(1);
+  const [sizeState, setSizeState] = React.useState(pageSize);
+  const sort = onSortChange ? sortProp : sortState;
+  const setSort = (next: DataTableSort | undefined) => (onSortChange ? onSortChange(next) : setSortState(next));
+  const size = server ? pageSize : sizeState;
   const select = (k: string[]) => { setSel(k); onSelectionChange?.(k); };
   const sorted = React.useMemo(() => {
-    if (!sort) return data;
+    if (!sort || server) return data;
     const col = columns.find((c) => c.key === sort.key);
     const val = (r: T) => (col?.sortValue ? col.sortValue(r) : (r as Record<string, unknown>)[sort.key] as string | number);
     return [...data].sort((a, b) => { const x = val(a), y = val(b); const d = x < y ? -1 : x > y ? 1 : 0; return sort.dir === 'asc' ? d : -d; });
-  }, [data, sort, columns]);
-  const pages = Math.max(1, Math.ceil(sorted.length / size));
-  const cur = Math.min(page, pages);
-  const rows = pagination ? sorted.slice((cur - 1) * size, cur * size) : sorted;
+  }, [data, sort, columns, server]);
+  const count = server ? total : sorted.length;
+  const pages = Math.max(1, Math.ceil(count / size));
+  const cur = server ? (pageProp ?? 1) : Math.min(pageState, pages);
+  const rows = pagination && !server ? sorted.slice((cur - 1) * size, cur * size) : sorted;
+  const goPage = (p: number) => (server ? onPageChange?.(p) : setPageState(p));
+  const goSize = (n: number) => { if (server) onPageSizeChange?.(n); else { setSizeState(n); setPageState(1); } };
   const keys = rows.map(rowKey);
   const allOn = keys.length > 0 && keys.every((k) => sel.includes(k));
   const someOn = keys.some((k) => sel.includes(k));
-  const toggleSort = (k: string) => setSort((s) => (s?.key !== k ? { key: k, dir: 'desc' } : s.dir === 'desc' ? { key: k, dir: 'asc' } : undefined));
+  const toggleSort = (k: string) => setSort(sort?.key !== k ? { key: k, dir: 'desc' } : sort.dir === 'desc' ? { key: k, dir: 'asc' } : undefined);
   const span = columns.length + (selectable ? 1 : 0) + (rowActions ? 1 : 0);
   const bulk = !!bulkActions && sel.length > 0;
   const align = (c: Column<T>) => c.align ?? (c.numeric ? 'right' : 'left');
@@ -203,9 +224,9 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
-      {pagination && !loading && sorted.length > 0 && (
+      {pagination && !loading && count > 0 && (
         <div className="flex min-h-13 items-center rounded-b-md border-t border-border-subtle bg-surface py-2.5 pr-3 pl-4">
-          <Pagination total={sorted.length} page={cur} pageSize={size} onPageChange={setPage} onPageSizeChange={(n) => { setSize(n); setPage(1); }} />
+          <Pagination total={count} page={cur} pageSize={size} onPageChange={goPage} onPageSizeChange={goSize} />
         </div>
       )}
     </div>

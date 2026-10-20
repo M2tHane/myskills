@@ -20,14 +20,20 @@ if (typeof window !== 'undefined') {
   });
 }
 
-/** 模拟网络延迟。默认 300–600ms，让加载态在原型里真实可见。empty 只清空列表类数据（数组），单个对象照常返回。 */
+/** 模拟网络延迟。默认 300–600ms，让加载态在原型里真实可见。empty 只清空列表类数据（数组，或分页结果 { items, total }），单个对象照常返回。 */
 export function delay<T>(value: T, ms = 300 + Math.random() * 300): Promise<T> {
   const state = mockState();
   if (state === 'loading') return new Promise(() => {});
   if (state === 'error') return fail('服务暂时不可用', ms, 500);
   if (state === 'forbidden') return fail('没有权限', ms, 403);
-  const v = state === 'empty' && Array.isArray(value) ? ([] as T) : value;
+  const v = state === 'empty' ? emptied(value) : value;
   return new Promise((resolve) => setTimeout(() => resolve(structuredClone(v)), ms));
+}
+
+function emptied<T>(value: T): T {
+  if (Array.isArray(value)) return [] as T;
+  if (value && typeof value === 'object' && Array.isArray((value as { items?: unknown }).items)) return { ...value, items: [], total: 0 };
+  return value;
 }
 
 /** 模拟接口报错。 */
