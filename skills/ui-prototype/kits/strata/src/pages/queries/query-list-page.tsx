@@ -10,6 +10,7 @@ import {
 import {
   owners, useDeleteQueries, useDuplicateQuery, useQueryList, useRestoreQueries, type QueryRow,
 } from '@/api/queries';
+import { useCurrentUser } from '@/api/session';
 import { LoadFailed } from '@/pages/errors/error-pages';
 
 const STATUS_OPTIONS = [{ value: '运行中', label: '运行中' }, { value: '已完成', label: '已完成' }, { value: '待审核', label: '待审核' }, { value: '失败', label: '失败' }, { value: '草稿', label: '草稿' }];
@@ -26,6 +27,7 @@ const inRange = (at: string, r?: DateRange) => {
 export function QueryListPage() {
   const navigate = useNavigate();
   const { data: rows = [], isPending, isError, error, refetch } = useQueryList();
+  const me = useCurrentUser().name;
   const del = useDeleteQueries();
   const restore = useRestoreQueries();
   const duplicate = useDuplicateQuery();
@@ -40,7 +42,7 @@ export function QueryListPage() {
 
   const shown = rows.filter((r) =>
     (!q || r.name.includes(q)) && inRange(r.updated, range) && (!status || r.status === status) && (!owner || r.owner === owner) &&
-    (!onlyMine || r.owner === '张一鸣') && (tab !== 'mine' || r.owner === '张一鸣') && (tab !== 'sched' || r.schedule !== '手动'));
+    (!onlyMine || r.owner === me) && (tab !== 'mine' || r.owner === me) && (tab !== 'sched' || r.schedule !== '手动'));
   const filters = (status ? 1 : 0) + (owner ? 1 : 0) + (onlyMine ? 1 : 0);
   const clear = () => { setQ(''); setStatus(undefined); setOwner(undefined); setOnlyMine(false); setRange(undefined); };
   // 空状态分两种：一条数据都没有（或当前 Tab 下没有）→ 引导新建；有数据但筛选后没有结果 → 引导清除筛选
@@ -104,7 +106,7 @@ export function QueryListPage() {
           actions={<Button variant="default" leftIcon={<Plus />} onClick={() => navigate('/queries/new')}>新建查询</Button>}
           tabs={<TabsList>
             <TabsTrigger value="all" count={rows.length}>全部</TabsTrigger>
-            <TabsTrigger value="mine" count={rows.filter((r) => r.owner === '张一鸣').length}>我创建的</TabsTrigger>
+            <TabsTrigger value="mine" count={rows.filter((r) => r.owner === me).length}>我创建的</TabsTrigger>
             <TabsTrigger value="sched">定时任务</TabsTrigger>
           </TabsList>} />
         <TabsContent value={tab} forceMount>
