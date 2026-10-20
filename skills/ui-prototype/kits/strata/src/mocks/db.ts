@@ -66,3 +66,14 @@ export const SETTINGS = {
   notifications: { failed: true, slow: true, quota: true, weekly: false, channel: 'email', recipients: ['张一鸣', '李想'] },
   security: { sessionHours: '8', twoFactor: true, ipAllowlist: '10.20.0.0/16\n172.16.8.0/24', exportApproval: true },
 };
+
+/* -------------------------------------------------------------- 成员 */
+export interface MemberRow { id: string; name: string; email: string; role: '管理员' | '数据分析' | '只读'; status: '已加入' | '邀请中' | '已停用'; tone: Tone; lastActive: string }
+export const MEMBERS: MemberRow[] = [
+  { id: 'm1', name: '李想', email: 'lixiang@example.com', role: '管理员', status: '已加入', tone: 'success', lastActive: '2026-10-19 09:40' },
+  { id: 'm2', name: '张一鸣', email: 'zhangyiming@example.com', role: '数据分析', status: '已加入', tone: 'success', lastActive: '2026-10-19 08:56' },
+  { id: 'm3', name: '王晓', email: 'wangxiao@example.com', role: '数据分析', status: '已加入', tone: 'success', lastActive: '2026-10-18 22:05' },
+  { id: 'm4', name: '陈静', email: 'chenjing@example.com', role: '只读', status: '已加入', tone: 'success', lastActive: '2026-10-17 15:32' },
+  { id: 'm5', name: '刘洋', email: 'liuyang@example.com', role: '数据分析', status: '邀请中', tone: 'warning', lastActive: '—' },
+  { id: 'm6', name: '赵磊', email: 'zhaolei@example.com', role: '只读', status: '已停用', tone: 'neutral', lastActive: '2026-08-02 10:11' },
+];

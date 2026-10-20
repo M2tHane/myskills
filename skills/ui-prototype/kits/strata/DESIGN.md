@@ -142,7 +142,7 @@ Strata 是一套给后台、数据类产品用的界面风格：**白与灰是�
 - 禁用：降低对比，不降透明度整块变灰；光标 `not-allowed`。
 - 加载：按钮用 `loading` 属性（转圈替换左图标，文字保留）；表格用 `loading`（骨架行）；整页用 `Skeleton`，不用全屏转圈。
 - 错误：输入框 `invalid` + `Field error`，红字只写错误本身，不写建议。
-- 空：`EmptyState`，标题一句话 + 一个操作按钮。
+- 空：`EmptyState`，标题一句话 + 一个操作按钮。列表分两种：没有数据（「还没有查询」+ 新建查询）；筛选后没有结果（「没有符合条件的查询」+ 清除筛选）。
 
 ---
 
@@ -239,7 +239,8 @@ Strata 是一套给后台、数据类产品用的界面风格：**白与灰是�
 | 设置 | `/settings/:section` | `pages/settings/settings-page.tsx` | 左侧 VerticalNav，每个分组一个路由、独占内容区；右侧横排表单卡片（标签宽 136，表单最宽 640），保存放在卡片 footer，没有改动不可点 |
 | 分步向导 | `/data/sources/new` | `pages/sources/source-wizard-page.tsx` | 3–5 步；卡片顶部 Steps，底部 ActionBar（左上一步，右取消 + 下一步 / 完成）；一个表单贯穿所有步骤，每步只 `trigger` 本步字段 |
 | 登录 | `/login` | `pages/auth/login-page.tsx` | 外框之外；左侧灰画布（左上角 Logo）放真实组件拼的产品预览，右侧 480px 白色表单栏；不用插画、渐变 |
-| 403 / 404 / 出错 | `/members`、`*`、`errorElement` | `pages/errors/error-pages.tsx` | 在外框内只占内容区；固定结构：图标块、状态码、标题、一行事实、两个按钮 |
+| 按角色可见 | `/members` | `pages/members/member-list-page.tsx` + `api/members.ts` | 权限规则写在 api 文件（`canManageMembers`）：接口没权限返回 403，`useNav` 按它过滤入口，按钮按它显示；页面自己不判断角色 |
+| 403 / 404 / 出错 | `*`、`errorElement`、读取失败 | `pages/errors/error-pages.tsx` | 在外框内只占内容区；固定结构：图标块、状态码、标题、一行事实、两个按钮 |
 
 - 只有 ≤5 个字段的简单新建（重命名、加标签）才用 Dialog md。
 - 详情页（`table-detail-page.tsx`）：PageHeader 带名称、状态徽标、收藏、刷新/更多、主操作、子模块 Tabs → 概览 Tab 用 1.6 : 1 两栏卡片，左侧主信息（bordered DescriptionList、趋势图），右侧次要信息（来源、关联列表）。
@@ -398,6 +399,7 @@ src/
   pages/<模块>/<页面>.tsx   页面，只负责组合组件和调用 src/api
   api/<资源>.ts       接口层：fetch 函数 + 查询键 + useXxx hooks；类型也从这里导出
   api/query-client.ts 全局 QueryClient
+  api/errors.ts       ApiError（接口报错，带 HTTP 状态码）；mocks 的 fail() 也抛它
   api/session.ts      当前用户：useCurrentUser()（页面）、getCurrentUser()（api）；接真实登录时只改它
   mocks/              模拟数据与 delay()、演示账号 users.ts；只有 api/ 能引用
   stores/<名称>.ts    Zustand（只放跨页面的前端状态）
@@ -422,7 +424,7 @@ src/
 - 失败：读取失败用 `LoadFailed`（`pages/errors/error-pages.tsx`）代替页面内容，403 显示无权限，其他显示「重试」；提交失败用 `toast({ tone: 'danger' })`，表单字段错误显示在对应 `Field` 下。
 - 删除给「撤销」：mutation 返回被删的数据，toast 的撤销按钮调用恢复接口。
 - 原型里 `delay()` 按地址的 `?state=loading | empty | error | forbidden` 返回四种状态（如 `#/queries?state=empty`），每个读数据的页面都要能正确显示这四种；接上真实接口后这个参数不再起作用。
-- 权限：页面按 `useCurrentUser()` 决定显示哪些导航和按钮，api 按 `getCurrentUser()` 过滤数据、拒绝没权限的读取（403）。原型里地址加 `?as=<演示账号 id>` 以这个身份打开，侧栏底部的用户菜单也能切换。
+- 权限：规则写在资源的 api 文件里（如 `api/members.ts` 的 `canManageMembers`）；页面按 `useCurrentUser()` 决定显示哪些导航和按钮，api 按 `getCurrentUser()` 过滤数据、拒绝没权限的读取（403）。原型里地址加 `?as=<演示账号 id>` 以这个身份打开，侧栏底部的用户菜单也能切换。
 
 ---
 

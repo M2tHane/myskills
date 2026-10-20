@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router';
 import { ChartColumn, Database, House, Layers, ListFilter, LogOut, Plus, Settings, Table, Users } from 'lucide-react';
 import type { CommandGroup, NavSection } from '@/components/ui';
 import { useQueryList } from '@/api/queries';
+import { canManageMembers } from '@/api/members';
+import { useCurrentUser } from '@/api/session';
 import type { UserMenuItem } from './app-layout';
 
 /** 外框里和项目有关的文字：工作区名、两处搜索框的提示、通知数（null 不显示铃铛）。改这里，不改 app-layout.tsx。 */
@@ -24,9 +26,12 @@ const NAV: NavSection[] = [
   { title: '管理', items: [{ key: '/members', label: '成员与权限', icon: <Users /> }, { key: '/settings', label: '设置', icon: <Settings /> }] },
 ];
 
-/** 外框用的导航。按角色显示时在这里用 useCurrentUser()（@/api/session）过滤，没权限的入口不出现。 */
+/** 外框用的导航，按当前用户过滤：没权限的入口不出现（权限规则写在 api 文件里，如 canManageMembers）。 */
 export function useNav(): NavSection[] {
-  return NAV;
+  const user = useCurrentUser();
+  return NAV
+    .map((s) => ({ ...s, items: s.items.filter((i) => i.key !== '/members' || canManageMembers(user)) }))
+    .filter((s) => s.items.length > 0);
 }
 
 /** 命令面板里「页面」之后的分组：业务对象与常用操作，数据从 src/api/ 取。 */

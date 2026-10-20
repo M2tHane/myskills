@@ -1,3 +1,5 @@
+import { ApiError } from '@/api/errors';
+
 /**
  * 原型的四种状态：网址带 ?state=loading | empty | error | forbidden 时（hash 路由写在 # 后面，如 #/queries?state=empty），
  * 所有模拟请求按这个状态返回，用来查看页面在加载中、空数据、出错、无权限时的样子。
@@ -31,9 +33,4 @@ export function delay<T>(value: T, ms = 300 + Math.random() * 300): Promise<T> {
 /** 模拟接口报错。 */
 export function fail(message: string, ms = 400, status = 400): Promise<never> {
   return new Promise((_, reject) => setTimeout(() => reject(new ApiError(message, status)), ms));
-}
-
-export class ApiError extends Error {
-  readonly status: number;
-  constructor(message: string, status = 400) { super(message); this.status = status; }
 }

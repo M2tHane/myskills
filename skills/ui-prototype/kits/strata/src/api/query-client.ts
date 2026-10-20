@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import { ApiError } from '@/mocks/delay';
+import { ApiError } from './errors';
 
 /** 全局唯一的 QueryClient。页面不直接用它，只在 mutation 成功后让相关查询失效。 */
 export const queryClient = new QueryClient({

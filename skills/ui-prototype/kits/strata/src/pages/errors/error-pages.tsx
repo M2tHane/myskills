@@ -40,7 +40,8 @@ export function NotFoundPage({ standalone }: { standalone?: boolean }) {
   );
 }
 
-export function ForbiddenPage({ fact = '成员与权限 · 需要管理员角色' }: { fact?: React.ReactNode }) {
+/** 403。fact 写缺的权限（如「成员与权限 · 需要管理员角色」），不传就不显示。 */
+export function ForbiddenPage({ fact }: { fact?: React.ReactNode }) {
   const navigate = useNavigate();
   return (
     <StatusView icon={<ShieldX />} tone="warning" code="403" title="没有访问权限" fact={fact}

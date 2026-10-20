@@ -43,6 +43,11 @@ export function QueryListPage() {
     (!onlyMine || r.owner === '张一鸣') && (tab !== 'mine' || r.owner === '张一鸣') && (tab !== 'sched' || r.schedule !== '手动'));
   const filters = (status ? 1 : 0) + (owner ? 1 : 0) + (onlyMine ? 1 : 0);
   const clear = () => { setQ(''); setStatus(undefined); setOwner(undefined); setOnlyMine(false); setRange(undefined); };
+  // 空状态分两种：一条数据都没有（或当前 Tab 下没有）→ 引导新建；有数据但筛选后没有结果 → 引导清除筛选
+  const filtered = rows.length > 0 && (!!q || !!range || filters > 0);
+  const empty = filtered
+    ? <EmptyState size="sm" icon={<Search />} title={q ? `没有匹配“${q}”的查询` : '没有符合条件的查询'} action={<Button size="sm" onClick={clear}>清除筛选</Button>} />
+    : <EmptyState size="sm" icon={<ListFilter />} title={rows.length ? '这里还没有查询' : '还没有查询'} action={<Button size="sm" leftIcon={<Plus />} onClick={() => navigate('/queries/new')}>新建查询</Button>} />;
 
   const remove = async (items: QueryRow[]) => {
     setDeleting(null); setOpen(null);
@@ -89,7 +94,7 @@ export function QueryListPage() {
     </>
   );
 
-  // 四种状态：加载中 → DataTable loading；空数据 → DataTable empty；出错、无权限 → LoadFailed（原型里用 ?state= 切换）
+  // 四种状态：加载中 → DataTable loading；空数据 → DataTable empty（上面的两种空状态）；出错、无权限 → LoadFailed（原型里用 ?state= 切换）
   if (isError) return <LoadFailed error={error} onRetry={() => refetch()} />;
 
   return (
@@ -123,7 +128,7 @@ export function QueryListPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </>}
-              empty={<EmptyState size="sm" icon={<Search />} title={q ? `没有匹配“${q}”的查询` : '没有符合条件的查询'} action={<Button size="sm" onClick={clear}>清除筛选</Button>} />}
+              empty={empty}
             />
           </PageBody>
         </TabsContent>
