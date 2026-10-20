@@ -125,7 +125,7 @@ else {
     const name = path.basename(rel);
     if (st.isSymbolicLink()) { errors.push(`不能有软链接：${rel}`); return; }
     if (st.isDirectory()) {
-      if (name === 'node_modules' || name === '.build') { errors.push(`交付前要删掉 ${rel}/`); return; }
+      if (name === 'node_modules' || name === '.build' || name === '.shots') { errors.push(`交付前要删掉 ${rel}/`); return; }
       if (name === 'secrets') errors.push(`不能有敏感目录：${rel}/`);
       for (const n of readdirSync(abs(rel))) if (n !== '.DS_Store' && n !== '.git') walk(`${rel}/${n}`);
       return;

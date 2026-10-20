@@ -22,6 +22,7 @@ ui-prototype 的一套 UI 套件：做原型时 agent 读 [KIT.md](KIT.md)，照
 | `src/api/` + `src/mocks/` | 接口层样板与演示数据（只有 api 能引用 mocks）；`delay()` 支持 `?state=` 切换四种状态；`session.ts` + `users.ts` 是当前用户与演示账号，支持 `?as=` 切换身份；`errors.ts` 是接口报错 `ApiError`；`members.ts` 是按角色控制权限的样板；`mocks/gen.ts` 是固定种子的假数据生成器 |
 | `prototypes/` | 样板的单文件 HTML 成品 |
 | `scripts/check.mjs` | 规范检查，不需要安装依赖 |
+| `scripts/shoot.mjs` | 截图自查：按项目的 `review.json` 截每页的五种状态，生成总览页；依赖 playwright-core 和本机的 Chrome |
 | `scripts/new-page.mjs` + `templates/` | 页面生成脚本与模板（列表、详情、新建 / 编辑，以及接口层、假数据），从 `src/pages/` 的样板提炼；改了样板要同步模板 |
 | `dev/` | 维护工具：组件总览、重新生成 `prototypes/` |
 

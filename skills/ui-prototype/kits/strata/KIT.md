@@ -30,7 +30,7 @@ mkdir -p $P/scripts/templates $P/src/components $P/src/lib $P/src/api $P/src/moc
 cp -R $K/starter/. $P/
 cp $K/DESIGN.md $K/theme.css $P/
 cp -R $K/fonts $P/
-cp $K/scripts/check.mjs $K/scripts/new-page.mjs $P/scripts/
+cp $K/scripts/check.mjs $K/scripts/new-page.mjs $K/scripts/shoot.mjs $P/scripts/
 cp $K/templates/* $P/scripts/templates/
 cp -R $K/src/components/ui $P/src/components/
 cp $K/src/lib/utils.ts $P/src/lib/
@@ -87,8 +87,9 @@ cd $P && npm ci && npm run typecheck
 | `npm run new-page -- <list\|detail\|form> <资源> --route … --title … [--nav]` | 生成页面空壳（见第 3 节） |
 | `npm run typecheck` | 类型检查 |
 | `npm run check:ui` | 规范检查：写死的颜色、默认字号阴影、页面直接引用假数据等 |
+| `npm run shoot -- <预览地址>` | 截图自查（预览要在运行）：读 `review.json`，每页截正常和四种 `?state=`（宽 1440），输出 `.shots/<页面>-<状态>.png` 和总览 `.shots/index.html`。用本机的 Chrome / Chromium，可用 `CHROME_PATH` 指定；没有浏览器时只提示、不报错 |
 | `npm run build:html` | 打包成单文件 `app.html` |
-| `rm -rf node_modules` | 交付前删除依赖 |
+| `rm -rf node_modules .shots` | 交付前删除依赖和截图 |
 
 `typecheck` 和 `check:ui` 都通过才算完成。报错按提示改成 token，不要绕过。
 
