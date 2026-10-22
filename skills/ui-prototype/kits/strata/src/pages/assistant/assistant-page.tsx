@@ -4,12 +4,12 @@ import { ChevronDown, Database, Ellipsis, PanelRight, PanelRightClose, Pencil, S
 import {
   ApprovalPrompt, ApprovalRecord, AskPrompt, AskRecord, Button, ChatDock, ChatError, ChatMessage, ChatStatus, ChatStopped, ChatThread,
   ChatWelcome, Composer, CopyButton, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
-  DropdownMenuTrigger, EmptyState, FileChip, FileTree, IconButton, Input, Markdown, ModelPicker, Reasoning, RetryButton, Skeleton, ToolCall, toast,
+  DropdownMenuTrigger, EmptyState, FileChip, FileTree, IconButton, Input, Markdown, ModelPicker, Reasoning, RetryButton, Skeleton, ToolCall, ToolGroup, toast,
   type FileNode,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import {
-  models, suggestions, useChatRun, useConversations, useMessages, useWorkspaceFiles,
+  models, suggestions, toolSummary, useChatRun, useConversations, useMessages, useWorkspaceFiles,
   type ChatFile, type ChatMessageRow, type ChatPart, type ConversationRow, type WorkspaceFile,
 } from '@/api/assistant';
 import { LoadFailed } from '@/pages/errors/error-pages';
@@ -204,24 +204,41 @@ function Message({ m, last }: { m: ChatMessageRow; last: boolean }) {
   );
 }
 
+type ToolPart = Extract<ChatPart, { kind: 'tool' }>;
+
+/** 连续的工具调用合成一组：一个就单独一行，两个以上折叠成「运行了 2 条 SQL…」。 */
+function Tools({ items }: { items: ToolPart[] }) {
+  const calls = items.map((p, i) => (
+    <ToolCall key={i} title={p.title} name={p.name} status={p.status} duration={p.duration} input={p.input} output={p.output} error={p.error} />
+  ));
+  if (items.length === 1) return calls[0];
+  const running = items.find((p) => p.status === 'running');
+  return <ToolGroup summary={running ? running.title : toolSummary(items.map((p) => p.name))} running={!!running}>{calls}</ToolGroup>;
+}
+
 function Parts({ parts, streaming }: { parts: ChatPart[]; streaming?: boolean }) {
-  return (
-    <>
-      {parts.map((p, i) => {
-        const lastText = streaming && i === parts.length - 1;
-        switch (p.kind) {
-          case 'text': return <Markdown key={i} streaming={lastText}>{p.text}</Markdown>;
-          case 'reasoning': return <Reasoning key={i} seconds={p.seconds}>{p.text}</Reasoning>;
-          case 'tool': return <ToolCall key={i} title={p.title} name={p.name} args={p.args} status={p.status} duration={p.duration} input={p.input} output={p.output} error={p.error} />;
-          case 'ask-record': return <AskRecord key={i} items={p.items} skipped={!p.items.length} />;
-          case 'approval-record': return <ApprovalRecord key={i} approved={p.approved}>{p.title}</ApprovalRecord>;
-          case 'files': return <div key={i} className="flex flex-wrap gap-1.5">{p.files.map((f) => <FileChip key={f.name} name={f.name} size={f.size} onClick={() => toast({ tone: 'info', title: '原型：打开文件', description: f.name })} />)}</div>;
-          case 'stopped': return <ChatStopped key={i} />;
-          case 'error': return <ChatError key={i} onRetry={() => toast({ tone: 'info', title: '原型：重试' })}>{p.message}</ChatError>;
-        }
-      })}
-    </>
-  );
+  const out: React.ReactNode[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    if (p.kind === 'tool') {
+      const run: ToolPart[] = [];
+      while (i < parts.length && parts[i].kind === 'tool') run.push(parts[i++] as ToolPart);
+      i--;
+      out.push(<Tools key={i} items={run} />);
+      continue;
+    }
+    const lastText = streaming && i === parts.length - 1;
+    switch (p.kind) {
+      case 'text': out.push(<Markdown key={i} streaming={lastText}>{p.text}</Markdown>); break;
+      case 'reasoning': out.push(<Reasoning key={i} seconds={p.seconds}>{p.text}</Reasoning>); break;
+      case 'ask-record': out.push(<AskRecord key={i} items={p.items} skipped={!p.items.length} />); break;
+      case 'approval-record': out.push(<ApprovalRecord key={i} approved={p.approved}>{p.title}</ApprovalRecord>); break;
+      case 'files': out.push(<div key={i} className="flex flex-wrap gap-1.5">{p.files.map((f) => <FileChip key={f.name} name={f.name} size={f.size} onClick={() => toast({ tone: 'info', title: '原型：打开文件', description: f.name })} />)}</div>); break;
+      case 'stopped': out.push(<ChatStopped key={i} />); break;
+      case 'error': out.push(<ChatError key={i} onRetry={() => toast({ tone: 'info', title: '原型：重试' })}>{p.message}</ChatError>); break;
+    }
+  }
+  return <>{out}</>;
 }
 
 function ThreadSkeleton() {

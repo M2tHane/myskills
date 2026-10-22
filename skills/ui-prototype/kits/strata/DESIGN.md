@@ -220,9 +220,9 @@ Strata 是一套给后台、数据类产品用的界面风格：**白与灰是�
 |---|---|
 | `ChatThread` / `ChatDock` | 消息区与底部停靠区（离页面底边留 24px，输入框不贴底）。消息区占满剩余高度、自己滚动，内容居中宽 `--chat-width`（760）；停在底部时新内容自动跟到底，用户往上翻时不打扰，底部出现「回到底部」。`ChatDock` 放输入框或提问框，与消息同宽。 |
 | `ChatMessage` | 一条消息。`role="user"`：右侧浅灰气泡（最宽 85%），附件在气泡上方；`role="assistant"`：正文、工具调用、文件依次往下排。`actions` 是消息下方的操作（`CopyButton`、`RetryButton`），默认悬停才出现，最后一条助手消息用 `showActions="always"`。 |
-| `Markdown` / `Prose` / `CodeBlock` | 助手正文。`Prose` 是排版（段落、标题、列表、行内代码、引用、表格）；`Markdown` 是原型用的简化渲染（假数据里的回答是字符串），`streaming` 时末尾显示光标；真实开发换成 `react-markdown` + `remark-gfm`，外面照样包 `Prose`，代码块用 `CodeBlock`（语言名 + 复制）。 |
+| `Markdown` / `Prose` / `CodeBlock` | 助手正文。**文字不铺满**：段落、标题、列表、引用右侧留 48px；**代码块、命令、表格占满整行**（`data-full`）。`Markdown` 支持 1–4 级标题、段落、有序 / 无序列表（可嵌套）、任务列表 `- [x]`、``` 代码块（语言名 + 复制）、表格（含对齐）、引用（可嵌套）、分隔线、粗体、斜体、删除线、行内代码、链接和裸网址；`streaming` 时末尾显示光标，写到一半的代码块、表格也能显示。原型直接用它；真实开发可换 `react-markdown` + `remark-gfm`，外面包 `Prose`、代码块用 `CodeBlock`、表格外包 `<div data-full>`。 |
 | `ChatStatus` / `Reasoning` | 进行中的一行「正在思考 · 3 秒」（传 `since` 计时）；思考过程默认收起成「已思考 4 秒」，展开是左侧细线的灰字。 |
-| `ToolCall` | 工具调用：一行等宽字「● tool_call: **run_sql**(SELECT region, SUM(…)…)」——圆点是状态（灰等待、蓝闪运行中、绿完成、红失败），工具名粗体，括号里是参数摘要（JSON 写成 `key: value`），过长截断，行尾是耗时。点一下在下方展开完整的参数和结果（左侧细线、等宽字、最高 288 后滚动），再点收起。连续多个直接上下排列，不加边框。 |
+| `ToolCall` / `ToolGroup` / `ToolNote` / `ToolFile` | 工具调用与命令执行。每次调用是一行**简短的解释**（灰字 + ›，`title` 写这一步在做什么：「查询上周各区域的 GMV 和订单数」），点开显示 **Request**（命令、SQL、参数，旁边是工具名）和 **Response**（输出；失败时红字）两块等宽文字。运行中解释前面转圈，失败是红色叉号。连续两步以上包进 `ToolGroup`：折叠时只有一行摘要（「运行了 2 条 SQL，读取了 1 个文件」，超过两类写「…以及另外 N 步」；运行中写当前这一步），展开后是细边框列表、每步一行；列表里还可以放 `ToolNote`（一行思路）和 `ToolFile`（「已创建 x.tsx」）。只有一步时直接放 `ToolCall`，不包组。 |
 | `Composer` / `ModelPicker` | 对话输入框：框里只有文字（默认 3 行高，`minRows`；内容多了自动长高，最多 `maxRows` 行）和右下角圆形发送（没内容时变浅），生成中变成「停止」。Enter 发送、Shift + Enter 换行（输入法组字时不发送）。框下方一行：左侧「+」添加文件（`onAttach`，也支持拖入、粘贴；待发送附件用 `FileChip` 放 `attachments`）和 `tools`（数据源这类 ghost 小按钮 + 下拉菜单），右侧 `footerEnd` 放 `ModelPicker`。不放语音、Auto、免责声明。`ModelPicker`：按钮「模型名 强度」（强度灰色），向上弹出菜单：常用模型（名称 + 一句说明，当前的打勾）→ 推理强度（二级菜单）→ 更多模型（二级菜单）。占位文字写能问什么，不写操作说明。 |
 | `AskPrompt` / `AskRecord` | Agent 反问用户：出现时**代替输入框**停在底部，不用弹窗遮住对话（用户要能往上翻看上下文）。每个选项一行（编号或复选框 + 名称 + 可选的一行补充），选中浅蓝底蓝边；最后自动加「其他」（选中后出现输入框）；多个问题时顶部是标签，答过的打勾；数字键选择、Enter 下一题 / 提交、Esc 跳过。回答后在消息里留 `AskRecord`（问题 ↳ 回答）。 |
 | `ApprovalPrompt` / `ApprovalRecord` | 执行有副作用的工具前请用户确认，同样代替输入框：标题一句「允许删除 3 个查询？」、工具名、将执行的参数（等宽）、一行影响范围；按钮「拒绝 / 允许」，`danger`（不可撤销）时图标和允许按钮变红、不出现「以后都允许」。Enter 允许，Esc 拒绝。处理后留 `ApprovalRecord`（已允许 / 已拒绝）。 |
@@ -324,7 +324,7 @@ Strata 的组件只依赖 React、Radix、cva、clsx、tailwind-merge、lucide-r
 | 表单与校验 | `react-hook-form@7.90.0` + `zod@4.6.7` + `@hookform/resolvers@5.9.2` | 始终（只要有表单）。写法见第 15 节 | Formik、手写 useState 表单校验、yup |
 | 日期 | `date-fns@4.4.0` | 始终（日期组件依赖它） | moment、dayjs、手写日期计算 |
 | 动画 | 优先 CSS（`theme.css` 里的 `animate-*`）；复杂动效用 `motion@14.4.0` | 列表增删时其余项平滑挪位、拖拽回弹、数字滚动、共享元素过渡等 CSS 做不好的效果 | 为开合、淡入这类简单效果引入 Motion；react-spring、GSAP |
-| Markdown 渲染 | `react-markdown@10.1.0` + `remark-gfm@4.0.1`，结果包在 Strata 的 `Prose` 里，代码块用 `CodeBlock` | 真实开发里渲染 LLM 回答；原型用 Strata 的 `Markdown`（简化版）即可，不装 | marked + `dangerouslySetInnerHTML`；自己写正则渲染 |
+| Markdown 渲染 | 原型和一般场景用 Strata 的 `Markdown`（不依赖第三方库，支持常用 GFM 语法）；要完整 CommonMark / GFM（脚注、HTML、数学公式等）时用 `react-markdown@10.1.0` + `remark-gfm@4.0.1`，结果包在 `Prose` 里，代码块用 `CodeBlock` | 渲染 LLM 回答 | marked + `dangerouslySetInnerHTML`；自己写正则渲染 |
 | 图表 | `echarts@6.1.0`，通过 Strata 的 `Chart` 与图表生成函数使用（见第 13 节） | 折线、柱状、占比、散点、热力、漏斗、柱线组合等任何数据图 | Recharts、Chart.js、AntV；手写 ECharts 配色和样式 |
 | 可拖动分栏 | `react-resizable-panels@4.14.7`，通过 Strata 的 `Resizable*` 组件使用 | 编辑器 + 结果、对话 + 结果、目录树 + 详情等需要用户调宽高的分栏 | 自己写拖拽调宽；用它做应用外框（外框固定用 AppShell） |
 | 拖拽 | `@dnd-kit/core@6.3.1`、`@dnd-kit/sortable@10.0.0`、`@dnd-kit/utilities@3.2.2` | 排序列表、看板、仪表盘布局、把字段拖进维度 / 指标区 | react-beautiful-dnd、原生 HTML5 拖拽 |

@@ -8,7 +8,7 @@ export interface ChatFile { name: string; size: number }
 export type ChatPart =
   | { kind: 'text'; text: string }
   | { kind: 'reasoning'; text: string; seconds: number }
-  | { kind: 'tool'; title: string; name: string; args?: string; status: 'running' | 'done' | 'error'; duration?: string; input: string; output?: string; error?: string }
+  | { kind: 'tool'; title: string; name: string; status: 'running' | 'done' | 'error'; duration?: string; input: string; output?: string; error?: string }
   | { kind: 'ask-record'; items: Array<{ question: string; answer: string }> }
   | { kind: 'approval-record'; approved: boolean; title: string }
   | { kind: 'files'; files: ChatFile[] }
@@ -48,6 +48,22 @@ export const GMV_ANSWER = `上周（10 月 12 日 – 18 日）华东区 GMV 为
 - 10 月 15 日的会员日，单日 GMV ¥286.3 万，占全周的 22%；
 - 上海、杭州两个城市的客单价分别上涨 6.4% 和 5.1%。
 
+### 口径
+1. **GMV** 用实付金额 \`pay_amount\` 汇总，*不含*退款；
+2. 「上周」按自然周，周一到周日：
+   - 本周：10 月 12 日 – 18 日
+   - 前一周：10 月 5 日 – 11 日
+
+用到的 SQL：
+
+\`\`\`sql
+SELECT region, SUM(pay_amount) AS gmv, COUNT(*) AS orders
+FROM orders_daily
+WHERE dt BETWEEN '2026-10-12' AND '2026-10-18'
+GROUP BY region
+ORDER BY gmv DESC;
+\`\`\`
+
 需要的话，我可以按城市继续拆分，或把结果导出成报表。`;
 
 export const MESSAGES: Record<string, ChatMessageRow[]> = {
@@ -56,17 +72,17 @@ export const MESSAGES: Record<string, ChatMessageRow[]> = {
     {
       id: 'm2', role: 'assistant', parts: [
         { kind: 'reasoning', seconds: 4, text: '「上周」按自然周取 10 月 12 日到 18 日；GMV 用实付金额 pay_amount 汇总，口径和「运营周报」一致。先按区域汇总，再和前一周对比。' },
-        { kind: 'tool', title: '查询订单数据', name: 'run_sql', status: 'done', duration: '1.4 秒', input: GMV_SQL, output: '[\n  { "region": "华东", "gmv": 12846210.5, "orders": 48213 },\n  { "region": "华南", "gmv": 9321088.0, "orders": 36870 },\n  { "region": "华北", "gmv": 8154032.2, "orders": 31052 }\n]' },
-        { kind: 'tool', title: '查询前一周数据', name: 'run_sql', status: 'done', duration: '1.1 秒', input: GMV_SQL.replace("'2026-10-12' AND '2026-10-18'", "'2026-10-05' AND '2026-10-11'"), output: '[ … 3 行 ]' },
+        { kind: 'tool', title: '查询上周各区域的 GMV 和订单数', name: 'run_sql', status: 'done', duration: '1.4 秒', input: GMV_SQL, output: '[\n  { "region": "华东", "gmv": 12846210.5, "orders": 48213 },\n  { "region": "华南", "gmv": 9321088.0, "orders": 36870 },\n  { "region": "华北", "gmv": 8154032.2, "orders": 31052 }\n]' },
+        { kind: 'tool', title: '查询前一周的数据，用来算环比', name: 'run_sql', status: 'done', duration: '1.1 秒', input: GMV_SQL.replace("'2026-10-12' AND '2026-10-18'", "'2026-10-05' AND '2026-10-11'"), output: '[ … 3 行 ]' },
         { kind: 'text', text: GMV_ANSWER },
       ],
     },
     { id: 'm3', role: 'user', text: '按城市拆一下，附件是城市和区域的对应表。', files: [{ name: '城市区域对照表.xlsx', size: 48_312 }], parts: [] },
     {
       id: 'm4', role: 'assistant', parts: [
-        { kind: 'tool', title: '读取附件', name: 'read_file', status: 'done', duration: '0.3 秒', input: '{ "file": "城市区域对照表.xlsx" }', output: '已读取 42 行（城市 → 区域）' },
-        { kind: 'tool', title: '按城市汇总', name: 'run_sql', status: 'error', duration: '0.8 秒', input: 'SELECT city, SUM(pay_amount) …', error: 'column "city" does not exist（orders_daily 里城市字段叫 ship_city）' },
-        { kind: 'tool', title: '按城市汇总（改用 ship_city）', name: 'run_sql', status: 'done', duration: '1.6 秒', input: 'SELECT ship_city, SUM(pay_amount) AS gmv …', output: '[ … 11 行 ]' },
+        { kind: 'tool', title: '读取附件里的城市和区域对应表', name: 'read_file', status: 'done', duration: '0.3 秒', input: '{ "file": "城市区域对照表.xlsx" }', output: '已读取 42 行（城市 → 区域）' },
+        { kind: 'tool', title: '按城市汇总华东区的 GMV', name: 'run_sql', status: 'error', duration: '0.8 秒', input: 'SELECT city, SUM(pay_amount) …', error: 'column "city" does not exist（orders_daily 里城市字段叫 ship_city）' },
+        { kind: 'tool', title: '城市字段名不对，改用 ship_city 重新汇总', name: 'run_sql', status: 'done', duration: '1.6 秒', input: 'SELECT ship_city, SUM(pay_amount) AS gmv …', output: '[ … 11 行 ]' },
         { kind: 'text', text: '华东区 11 个城市里，**上海**（¥412.8 万）和**杭州**（¥236.5 万）合计占 50.5%；增长最快的是**宁波**，环比 +17.3%。\n\n完整结果已经保存成文件，可以在右侧「文件」里查看。' },
         { kind: 'files', files: [{ name: '华东区城市GMV_1012-1018.csv', size: 3_182 }] },
       ],
@@ -133,7 +149,7 @@ export function scriptFor(input: string): Step[] {
           const fmt = a.format?.[0] ?? 'xlsx';
           const ext = fmt === 'pdf' ? 'pdf' : fmt === 'csv' ? 'csv' : 'xlsx';
           return [
-            { do: 'tool', ms: 1300, title: '生成导出文件', name: 'export_report', input: JSON.stringify({ format: fmt, columns: a.cols ?? [] }, null, 2), output: `已生成 1 个文件（${ext.toUpperCase()}）` },
+            { do: 'tool', ms: 1300, title: '按选好的格式和字段生成导出文件', name: 'export_report', input: JSON.stringify({ format: fmt, columns: a.cols ?? [] }, null, 2), output: `已生成 1 个文件（${ext.toUpperCase()}）` },
             { do: 'text', text: `已按你的选择导出，共 ${(a.cols ?? []).length || 4} 个字段、11 行数据。` },
             { do: 'files', files: [{ name: `华东区城市GMV.${ext}`, size: ext === 'pdf' ? 412_800 : 18_640 }] },
           ];
@@ -143,13 +159,13 @@ export function scriptFor(input: string): Step[] {
   }
   if (/删除|清理|删掉/.test(input)) {
     return [
-      { do: 'tool', ms: 900, title: '查找过期查询', name: 'search_queries', input: '{ "last_run_before": "2026-07-01", "owner": "me" }', output: '找到 3 个：old_gmv_test、tmp_refund_check、副本-门店坪效' },
+      { do: 'tool', ms: 900, title: '查找 7 月以前没运行过的查询', name: 'search_queries', input: '{ "last_run_before": "2026-07-01", "owner": "me" }', output: '找到 3 个：old_gmv_test、tmp_refund_check、副本-门店坪效' },
       {
         do: 'approve', title: '允许删除 3 个查询？', tool: 'delete_queries', danger: true,
         detail: '{\n  "ids": ["q_1029", "q_1033", "q_1041"],\n  "names": ["old_gmv_test", "tmp_refund_check", "副本-门店坪效"]\n}',
         facts: '删除后运行记录一起删除，无法恢复。',
         approved: [
-          { do: 'tool', ms: 1000, title: '删除查询', name: 'delete_queries', input: '{ "ids": ["q_1029", "q_1033", "q_1041"] }', output: '已删除 3 个' },
+          { do: 'tool', ms: 1000, title: '删除这 3 个查询', name: 'delete_queries', input: '{ "ids": ["q_1029", "q_1033", "q_1041"] }', output: '已删除 3 个' },
           { do: 'text', text: '已删除 3 个过期查询：`old_gmv_test`、`tmp_refund_check`、`副本-门店坪效`。' },
         ],
         denied: [{ do: 'text', text: '好的，没有删除。需要的话可以先把它们移到「归档」。' }],
@@ -158,7 +174,8 @@ export function scriptFor(input: string): Step[] {
   }
   return [
     { do: 'think', ms: 1100, text: `理解问题：「${input.slice(0, 40)}」。先确认口径，再查最近一周的数据。` },
-    { do: 'tool', ms: 1400, title: '查询订单数据', name: 'run_sql', input: GMV_SQL, output: '[ … 3 行 ]' },
+    { do: 'tool', ms: 1200, title: '查询上周各区域的 GMV 和订单数', name: 'run_sql', input: GMV_SQL, output: '[ … 3 行 ]' },
+    { do: 'tool', ms: 900, title: '查询前一周的数据，用来算环比', name: 'run_sql', input: GMV_SQL.replace("'2026-10-12' AND '2026-10-18'", "'2026-10-05' AND '2026-10-11'"), output: '[ … 3 行 ]' },
     { do: 'text', text: GMV_ANSWER },
   ];
 }

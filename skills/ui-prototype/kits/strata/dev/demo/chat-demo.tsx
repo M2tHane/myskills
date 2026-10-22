@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Database, FileText } from 'lucide-react';
 import {
   ApprovalPrompt, ApprovalRecord, AskPrompt, AskRecord, ChatDock, ChatError, ChatMessage, ChatStatus, ChatThread, Composer, CopyButton,
-  FileChip, FileTree, Markdown, ModelPicker, Reasoning, RetryButton, ToolCall, toast, type FileNode,
+  FileChip, FileTree, Markdown, ModelPicker, ToolFile, ToolGroup, ToolNote, Reasoning, RetryButton, ToolCall, toast, type FileNode,
 } from '@/components/ui';
 
 const FILES: FileNode[] = [
@@ -43,8 +43,12 @@ export function ChatDemo() {
             <ChatMessage role="user" actions={<CopyButton text="上周华东区的 GMV 是多少？" />}>上周华东区的 GMV 是多少？</ChatMessage>
             <ChatMessage role="assistant" showActions="always" actions={<><CopyButton text={ANSWER} /><RetryButton /></>}>
               <Reasoning seconds={4}>「上周」按自然周取 10 月 12 日到 18 日，GMV 用实付金额汇总。</Reasoning>
-              <ToolCall title="查询订单数据" name="run_sql" duration="1.4 秒" input={'SELECT region, SUM(pay_amount) …'} output={'[ … 3 行 ]'} />
-              <ToolCall title="按城市汇总" name="run_sql" status="error" duration="0.8 秒" error={'column "city" does not exist'} />
+              <ToolGroup summary="运行了 2 条 SQL，读取了 1 个文件" defaultOpen>
+                <ToolCall title="查询上周各区域的 GMV" name="run_sql" duration="1.4 秒" input={'SELECT region, SUM(pay_amount) …'} output={'[ … 3 行 ]'} />
+                <ToolNote>城市字段名需要确认，先读数据字典</ToolNote>
+                <ToolCall title="按城市汇总华东区的 GMV" name="run_sql" status="error" duration="0.8 秒" input="SELECT city, …" error={'column "city" does not exist'} />
+                <ToolFile action="已创建" name="华东区城市GMV.csv" />
+              </ToolGroup>
               <ToolCall title="读取数据字典" name="read_doc" status="running" />
               <Markdown streaming>{streamed}</Markdown>
             </ChatMessage>

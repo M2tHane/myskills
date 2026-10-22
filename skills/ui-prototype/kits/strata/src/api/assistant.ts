@@ -30,6 +30,23 @@ export const useMessages = (id?: string) => useQuery({
 });
 export const useWorkspaceFiles = () => useQuery({ queryKey: assistantKeys.files, queryFn: () => delay(WORKSPACE) });
 
+/* ------------------------------------------------------------------ 步骤摘要 */
+
+const VERBS: Record<string, [string, string]> = {
+  run_sql: ['运行了', '条 SQL'], read_file: ['读取了', '个文件'], export_report: ['生成了', '个文件'],
+  search_queries: ['查找了', '次查询'], delete_queries: ['删除了', '批查询'],
+};
+
+/** 一组工具调用折叠时的一句话：「运行了 2 条 SQL，读取了 1 个文件」，超过两类时「…，以及另外 N 步」。 */
+export function toolSummary(names: string[]): string {
+  const counts = new Map<string, number>();
+  for (const n of names) counts.set(n in VERBS ? n : '*', (counts.get(n in VERBS ? n : '*') ?? 0) + 1);
+  const parts = [...counts].map(([k, c]) => { const [v, u] = VERBS[k] ?? ['调用了', '次工具']; return { text: `${v} ${c} ${u}`, c }; });
+  const head = parts.slice(0, 2).map((p) => p.text).join('，');
+  const rest = parts.slice(2).reduce((n, p) => n + p.c, 0);
+  return rest ? `${head}，以及另外 ${rest} 步` : head;
+}
+
 /* ------------------------------------------------------------------ 模拟运行 */
 
 export type Pending =
