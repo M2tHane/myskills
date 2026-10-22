@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Menu from '@radix-ui/react-dropdown-menu';
-import { Check } from 'lucide-react';
+import { Check, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const DropdownMenu = Menu.Root;
@@ -54,3 +54,29 @@ export function DropdownMenuLabel({ className, children }: { className?: string;
 export function DropdownMenuSeparator({ className }: { className?: string }) {
   return <Menu.Separator className={cn('-mx-1 my-1 h-px bg-border-subtle', className)} />;
 }
+
+/* 二级菜单：悬停或按 → 展开在右侧。SubTrigger 右侧可以写当前值（如「高」）。 */
+export const DropdownMenuSub = Menu.Sub;
+
+export const DropdownMenuSubTrigger = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<typeof Menu.SubTrigger> & { icon?: React.ReactNode; value?: React.ReactNode }>(
+  function DropdownMenuSubTrigger({ icon, value, className, children, ...props }, ref) {
+    return (
+      <Menu.SubTrigger ref={ref} className={cn(itemBase, 'data-[state=open]:bg-surface-hover', className)} {...props}>
+        {icon && <span className="inline-flex w-4 shrink-0 justify-center text-fg-muted [&_svg]:size-[15px]">{icon}</span>}
+        <span className="min-w-0 flex-1">{children}</span>
+        {value != null && <span className="ml-4 text-caption text-fg-subtle">{value}</span>}
+        <ChevronRight className="size-3.5 shrink-0 text-fg-subtle" />
+      </Menu.SubTrigger>
+    );
+  },
+);
+
+export const DropdownMenuSubContent = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<typeof Menu.SubContent>>(function DropdownMenuSubContent({ className, sideOffset = 6, ...props }, ref) {
+  return (
+    <Menu.Portal>
+      <Menu.SubContent ref={ref} sideOffset={sideOffset} alignOffset={-4} collisionPadding={8}
+        className={cn('z-[951] flex min-w-45 flex-col rounded-md border border-border bg-surface-raised p-1 font-sans shadow-raised outline-none data-[state=open]:animate-pop-in', className)}
+        {...props} />
+    </Menu.Portal>
+  );
+});

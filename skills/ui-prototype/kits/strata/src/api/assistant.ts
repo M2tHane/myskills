@@ -8,12 +8,14 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { delay } from '@/mocks/delay';
 import {
-  CONVERSATIONS, MESSAGES, SUGGESTIONS, WORKSPACE, scriptFor,
+  CONVERSATIONS, EFFORTS, MESSAGES, MODELS, MORE_MODELS, SUGGESTIONS, WORKSPACE, scriptFor,
   type AskQuestionData, type ChatFile, type ChatMessageRow, type ChatPart, type ConversationRow, type Step, type WorkspaceFile,
 } from '@/mocks/assistant';
 
 export type { AskQuestionData, ChatFile, ChatMessageRow, ChatPart, ConversationRow, WorkspaceFile };
 export const suggestions = SUGGESTIONS;
+/** 可选模型与推理强度（真实开发时从接口取）。 */
+export const models = { common: MODELS, more: MORE_MODELS, efforts: EFFORTS };
 
 export const assistantKeys = {
   conversations: ['assistant', 'conversations'] as const,

@@ -68,9 +68,9 @@ export function ChatThread({ children, className, contentClassName }: ChatThread
   );
 }
 
-/** 消息区底部：输入框、提问框、执行确认放在这里，与消息同宽；离底部留 32px，不贴着页面底边。 */
+/** 消息区底部：输入框、提问框、执行确认放在这里，与消息同宽；输入框下方是一行工具（添加文件、模型），再往下离页面底边留 24px。 */
 export function ChatDock({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <div className={cn('mx-auto w-full max-w-(--chat-width) shrink-0 px-6 pt-1 pb-8', className)}>{children}</div>;
+  return <div className={cn('mx-auto w-full max-w-(--chat-width) shrink-0 px-6 pt-1 pb-6', className)}>{children}</div>;
 }
 
 /* ------------------------------------------------------------------ 单条消息 */

@@ -163,6 +163,21 @@ export function scriptFor(input: string): Step[] {
   ];
 }
 
+/** 对话框下方的模型选择器。 */
+export const MODELS = [
+  { value: 'pro', label: 'Pro', description: '复杂分析和日常问数' },
+  { value: 'lite', label: 'Lite', description: '回答更快，额度消耗更少' },
+];
+export const MORE_MODELS = [
+  { value: 'pro-long', label: 'Pro 长上下文', description: '一次读入更多表结构和附件' },
+  { value: 'pro-1', label: 'Pro（上一版）', description: '和旧报表口径对齐时用' },
+];
+export const EFFORTS = [
+  { value: 'low', label: '低', description: '最快' },
+  { value: 'medium', label: '中' },
+  { value: 'high', label: '高', description: '想得更久，适合多步分析' },
+];
+
 export const SUGGESTIONS = [
   '上周各区域 GMV 和环比',
   '把华东区城市 GMV 导出成报表',

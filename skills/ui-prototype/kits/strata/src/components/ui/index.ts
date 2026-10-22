@@ -45,3 +45,4 @@ export * from './file-tree';
 export * from './chat';
 export * from './composer';
 export * from './ask-prompt';
+export * from './model-picker';

@@ -4,12 +4,12 @@ import { ChevronDown, Database, Ellipsis, PanelRight, PanelRightClose, Pencil, S
 import {
   ApprovalPrompt, ApprovalRecord, AskPrompt, AskRecord, Button, ChatDock, ChatError, ChatMessage, ChatStatus, ChatStopped, ChatThread,
   ChatWelcome, Composer, CopyButton, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
-  DropdownMenuTrigger, EmptyState, FileChip, FileTree, IconButton, Input, Markdown, Reasoning, RetryButton, Skeleton, ToolCall, toast,
+  DropdownMenuTrigger, EmptyState, FileChip, FileTree, IconButton, Input, Markdown, ModelPicker, Reasoning, RetryButton, Skeleton, ToolCall, toast,
   type FileNode,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import {
-  suggestions, useChatRun, useConversations, useMessages, useWorkspaceFiles,
+  models, suggestions, useChatRun, useConversations, useMessages, useWorkspaceFiles,
   type ChatFile, type ChatMessageRow, type ChatPart, type ConversationRow, type WorkspaceFile,
 } from '@/api/assistant';
 import { LoadFailed } from '@/pages/errors/error-pages';
@@ -103,6 +103,8 @@ function Conversation({ initial }: { initial?: ChatMessageRow[] }) {
   const chat = useChatRun(initial);
   const [drafts, setDrafts] = React.useState<Draft[]>([]);
   const [source, setSource] = React.useState(SOURCES[0]);
+  const [model, setModel] = React.useState('pro');
+  const [effort, setEffort] = React.useState('high');
   const empty = !chat.messages.length && !chat.live;
 
   const attach = (files: File[]) => {
@@ -163,6 +165,7 @@ function Conversation({ initial }: { initial?: ChatMessageRow[] }) {
             attachments={drafts.length ? drafts.map((d) => (
               <FileChip key={d.id} name={d.name} size={d.size} status={d.status} progress={d.progress} onRemove={() => setDrafts((x) => x.filter((y) => y.id !== d.id))} />
             )) : undefined}
+            footerEnd={<ModelPicker models={models.common} moreModels={models.more} value={model} onValueChange={setModel} efforts={models.efforts} effort={effort} onEffortChange={setEffort} />}
             tools={(
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

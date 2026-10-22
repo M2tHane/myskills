@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Database, FileText } from 'lucide-react';
 import {
   ApprovalPrompt, ApprovalRecord, AskPrompt, AskRecord, ChatDock, ChatError, ChatMessage, ChatStatus, ChatThread, Composer, CopyButton,
-  FileChip, FileTree, Markdown, Reasoning, RetryButton, ToolCall, toast, type FileNode,
+  FileChip, FileTree, Markdown, ModelPicker, Reasoning, RetryButton, ToolCall, toast, type FileNode,
 } from '@/components/ui';
 
 const FILES: FileNode[] = [
@@ -28,6 +28,8 @@ const ANSWER = `上周华东区 GMV 为 **¥1,284.6 万**，环比 **+8.2%**。
 
 export function ChatDemo() {
   const [streamed, setStreamed] = React.useState(ANSWER.slice(0, 40));
+  const [model, setModel] = React.useState('pro');
+  const [effort, setEffort] = React.useState('high');
   React.useEffect(() => {
     let i = 40;
     const t = setInterval(() => { i = i >= ANSWER.length ? 40 : i + 3; setStreamed(ANSWER.slice(0, i)); }, 60);
@@ -57,7 +59,8 @@ export function ChatDemo() {
           <ChatDock>
             <Composer onSubmit={(t) => toast({ tone: 'info', title: '发送', description: t })} onAttach={() => {}}
               attachments={<><FileChip name="门店月报.csv" size={182_400} onRemove={() => {}} /><FileChip name="区域趋势.png" status="uploading" progress={64} onRemove={() => {}} /><FileChip name="超大文件.zip" status="error" error="超过 20 MB" onRemove={() => {}} /></>}
-              tools={<span className="inline-flex items-center gap-1 px-1 font-mono text-caption text-fg-muted"><Database className="size-3.5" />pg-prod-02</span>} />
+              tools={<span className="inline-flex items-center gap-1 px-1 font-mono text-caption text-fg-muted"><Database className="size-3.5" />pg-prod-02</span>}
+              footerEnd={<ModelPicker value={model} onValueChange={setModel} effort={effort} onEffortChange={setEffort} models={[{ value: 'pro', label: 'Pro', description: '复杂分析和日常问数' }, { value: 'lite', label: 'Lite', description: '回答更快，额度消耗更少' }]} moreModels={[{ value: 'pro-long', label: 'Pro 长上下文' }]} efforts={[{ value: 'low', label: '低' }, { value: 'medium', label: '中' }, { value: 'high', label: '高' }]} />} />
           </ChatDock>
         </div>
         <div className="flex h-[640px] flex-col overflow-hidden rounded-md border border-border bg-surface shadow-card">
