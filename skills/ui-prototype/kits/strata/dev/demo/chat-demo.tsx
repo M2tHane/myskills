@@ -2,18 +2,18 @@ import * as React from 'react';
 import { Database, FileText } from 'lucide-react';
 import {
   ApprovalPrompt, ApprovalRecord, AskPrompt, AskRecord, ChatDock, ChatError, ChatMessage, ChatStatus, ChatThread, Composer, CopyButton,
-  FileChip, FileTree, Markdown, Reasoning, RetryButton, ToolCall, formatBytes, toast, type FileNode,
+  FileChip, FileTree, Markdown, Reasoning, RetryButton, ToolCall, toast, type FileNode,
 } from '@/components/ui';
 
 const FILES: FileNode[] = [
   { name: 'src', children: [
-    { name: 'app', children: [{ name: 'routes.tsx', status: 'modified', meta: '2.1 KB' }, { name: 'nav.tsx', meta: '1.4 KB' }] },
-    { name: 'pages', children: [{ name: 'order-list-page.tsx', status: 'added', meta: '6.8 KB' }, { name: 'legacy-page.tsx', status: 'deleted', meta: '3.0 KB' }] },
-    { name: 'main.tsx', meta: '0.4 KB' },
+    { name: 'app', children: [{ name: 'routes.tsx' }, { name: 'nav.tsx' }] },
+    { name: 'pages', children: [{ name: 'order-list-page.tsx' }, { name: 'legacy-page.tsx' }] },
+    { name: 'main.tsx' },
   ] },
-  { name: 'docs', children: [{ name: 'PRD.md', meta: '18 KB' }, { name: '架构图.png', meta: formatBytes(214_000) }] },
-  { name: 'package.json', meta: '1.2 KB' },
-  { name: '.env.example', status: 'untracked', meta: '0.2 KB' },
+  { name: 'docs', children: [{ name: 'PRD.md' }, { name: '架构图.png' }] },
+  { name: 'package.json' },
+  { name: '.env.example' },
 ];
 
 const ANSWER = `上周华东区 GMV 为 **¥1,284.6 万**，环比 **+8.2%**。
@@ -62,7 +62,7 @@ export function ChatDemo() {
         </div>
         <div className="flex h-[640px] flex-col overflow-hidden rounded-md border border-border bg-surface shadow-card">
           <div className="flex h-11 items-center gap-1.5 border-b border-border px-3 text-body-sm font-medium text-fg"><FileText className="size-4 text-fg-subtle" />文件</div>
-          <div className="min-h-0 flex-1 overflow-auto p-1.5"><FileTree data={FILES} defaultValue="src/pages/order-list-page.tsx" defaultExpanded="all" /></div>
+          <div className="min-h-0 flex-1 overflow-auto p-1.5"><FileTree data={FILES} defaultValue="src/pages/order-list-page.tsx" defaultExpanded="all" onRename={(p, n) => toast({ tone: 'success', title: '已重命名', description: `${p} → ${n}` })} onDelete={(p) => toast({ tone: 'success', title: '已删除', description: p })} onDownload={(p) => toast({ tone: 'info', title: '下载', description: p })} onCreate={(_, n, k) => toast({ tone: 'success', title: k === 'folder' ? '已新建文件夹' : '已新建文件', description: n })} onUpload={(_, fs) => toast({ tone: 'success', title: `已上传 ${fs.length} 个文件` })} /></div>
         </div>
       </div>
       <div className="grid grid-cols-2 items-start gap-4">

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ArrowDown, Check, ChevronRight, CircleAlert, CircleX, Clock3, Copy, RotateCw } from 'lucide-react';
+import { ArrowDown, Check, ChevronRight, CircleAlert, Copy, RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { IconButton } from './icon-button';
@@ -68,9 +68,9 @@ export function ChatThread({ children, className, contentClassName }: ChatThread
   );
 }
 
-/** 消息区底部：输入框、提问框、执行确认放在这里，与消息同宽。 */
+/** 消息区底部：输入框、提问框、执行确认放在这里，与消息同宽；离底部留 32px，不贴着页面底边。 */
 export function ChatDock({ children, className }: { children?: React.ReactNode; className?: string }) {
-  return <div className={cn('mx-auto w-full max-w-(--chat-width) shrink-0 px-6 pb-4', className)}>{children}</div>;
+  return <div className={cn('mx-auto w-full max-w-(--chat-width) shrink-0 px-6 pt-1 pb-8', className)}>{children}</div>;
 }
 
 /* ------------------------------------------------------------------ 单条消息 */
@@ -180,50 +180,67 @@ export function Reasoning({ children, running, seconds, since, defaultOpen = fal
 export type ToolStatus = 'pending' | 'running' | 'done' | 'error';
 
 export interface ToolCallProps {
-  /** 给人看的动作：「查询订单」「读取 orders_daily」。 */
-  title: React.ReactNode;
-  /** 工具名，等宽显示：`run_sql`。 */
-  name?: string;
+  /** 工具名，粗体显示：`run_sql`、`Bash`。 */
+  name: string;
+  /** 括号里的参数摘要，一行截断。不传时用 input 压成一行。 */
+  args?: string;
   status?: ToolStatus;
-  /** 「1.2 秒」。 */
+  /** 「1.2 秒」，行尾灰字。 */
   duration?: React.ReactNode;
-  /** 参数与结果，一般是 JSON 字符串；展开后用等宽字显示。 */
+  /** 完整参数与结果，展开后用等宽字显示。 */
   input?: string;
   output?: string;
   /** status="error" 时的原因，展开后显示。 */
   error?: string;
+  /** 给人看的动作（「查询订单数据」），悬停整行时显示。 */
+  title?: string;
   defaultOpen?: boolean;
   /** 展开区里的自定义内容（表格预览等），放在参数和结果后面。 */
   children?: React.ReactNode;
 }
 
-const TOOL_ICON: Record<ToolStatus, React.ReactNode> = {
-  pending: <Clock3 className="size-4 text-fg-subtle" />,
-  running: <Spinner className="size-4 text-fg-muted" />,
-  done: <Check className="size-4 text-success" strokeWidth={2.5} />,
-  error: <CircleX className="size-4 text-danger" />,
+/** 参数摘要：JSON 对象写成 `key: value, …`，其他文字压成一行。 */
+function summarize(input?: string): string {
+  const raw = (input ?? '').trim();
+  if (raw.startsWith('{')) {
+    try {
+      const o = JSON.parse(raw) as Record<string, unknown>;
+      if (o && typeof o === 'object' && !Array.isArray(o)) return Object.entries(o).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join(', ');
+    } catch { /* 不是合法 JSON，按文字处理 */ }
+  }
+  return raw.replace(/\s+/g, ' ');
+}
+
+const DOT: Record<ToolStatus, string> = {
+  pending: 'bg-fg-disabled',
+  running: 'bg-primary animate-caret',
+  done: 'bg-success',
+  error: 'bg-danger',
 };
 
 /**
- * 工具调用：一行 36px 的标题（状态图标、动作、工具名、耗时），点开看参数和结果。
- * 连续多个工具调用直接上下排列（间距 6px），不再包一层。
+ * 工具调用：一行等宽字「● tool_call: run_sql(SELECT region, SUM(…)…)」。
+ * 圆点表示状态（灰：等待、蓝闪：运行中、绿：完成、红：失败），工具名粗体，括号里是参数摘要，过长截断。
+ * 点一下展开完整的参数和结果，再点收起。连续多个直接上下排列。
  */
-export function ToolCall({ title, name, status = 'done', duration, input, output, error, defaultOpen = false, children }: ToolCallProps) {
+export function ToolCall({ name, args, status = 'done', duration, input, output, error, title, defaultOpen = false, children }: ToolCallProps) {
   const [open, setOpen] = React.useState(defaultOpen);
+  const summary = args ?? summarize(input);
   const body = input != null || output != null || error != null || children != null;
   return (
-    <div className={cn('overflow-hidden rounded-sm border bg-surface', status === 'error' ? 'border-danger-line' : 'border-border')}>
-      <button type="button" aria-expanded={body ? open : undefined} disabled={!body} onClick={() => setOpen(!open)}
-        className="flex h-9 w-full cursor-pointer items-center gap-2 px-2.5 text-left font-sans outline-none hover:bg-surface-hover focus-visible:shadow-focus-ring disabled:cursor-default disabled:hover:bg-transparent">
-        <span className="inline-flex size-4 shrink-0 items-center justify-center">{TOOL_ICON[status]}</span>
-        <span className="min-w-0 truncate text-body-sm font-medium text-fg">{title}</span>
-        {name && <span className="min-w-0 truncate font-mono text-caption text-fg-subtle">{name}</span>}
-        <span className="flex-1" />
-        {duration != null && <span className="shrink-0 text-caption text-fg-subtle tabular-nums">{duration}</span>}
-        {body && <ChevronRight className={cn('size-3.5 shrink-0 text-fg-subtle transition-transform duration-150', open && 'rotate-90')} />}
+    <div className="flex min-w-0 flex-col">
+      <button type="button" aria-expanded={body ? open : undefined} disabled={!body} onClick={() => setOpen(!open)} title={title}
+        className="-mx-1.5 flex h-7 min-w-0 cursor-pointer items-center gap-2 rounded-xs px-1.5 text-left font-mono text-code outline-none hover:bg-surface-hover focus-visible:shadow-focus-ring disabled:cursor-default disabled:hover:bg-transparent">
+        <span aria-label={{ pending: '等待', running: '运行中', done: '完成', error: '失败' }[status]} className={cn('size-2 shrink-0 rounded-full', DOT[status])} />
+        <span className="shrink-0 text-fg-subtle">tool_call:</span>
+        <span className="flex min-w-0 flex-1 items-baseline">
+          <span className="shrink-0 font-semibold text-fg">{name}</span>
+          <span className="min-w-0 truncate text-fg-muted">({summary})</span>
+        </span>
+        {duration != null && <span className="shrink-0 font-sans text-caption text-fg-subtle tabular-nums">{duration}</span>}
       </button>
       {open && body && (
-        <div className="flex flex-col gap-2.5 border-t border-border-subtle p-2.5">
+        <div className="mt-1 mb-1 ml-1 flex flex-col gap-2 border-l-2 border-border pl-3.5">
           {input != null && <ToolSection label="参数" text={input} />}
           {output != null && <ToolSection label="结果" text={output} />}
           {error != null && <ToolSection label="错误" text={error} danger />}
@@ -237,10 +254,8 @@ export function ToolCall({ title, name, status = 'done', duration, input, output
 function ToolSection({ label, text, danger }: { label: string; text: string; danger?: boolean }) {
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex h-5 items-center justify-between">
-        <span className="text-caption font-medium text-fg-muted">{label}</span>
-      </div>
-      <pre className={cn('m-0 max-h-60 overflow-auto rounded-xs bg-surface-sunken px-2.5 py-2 font-mono text-code break-all whitespace-pre-wrap',
+      <span className="text-caption font-medium text-fg-muted">{label}</span>
+      <pre className={cn('m-0 max-h-72 overflow-auto rounded-xs bg-surface-sunken px-2.5 py-2 font-mono text-code break-all whitespace-pre-wrap',
         danger ? 'text-danger' : 'text-fg')}>{text}</pre>
     </div>
   );

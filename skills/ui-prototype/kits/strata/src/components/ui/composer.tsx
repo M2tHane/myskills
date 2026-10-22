@@ -23,6 +23,8 @@ export interface ComposerProps {
   accept?: string;
   /** 左下角的其他工具：模型选择（Select size="sm"）、知识库开关等。 */
   tools?: React.ReactNode;
+  /** 文字区至少几行高（默认 3），内容更多时自动长高。 */
+  minRows?: number;
   /** 最多自动长高到几行，超过后内部滚动。 */
   maxRows?: number;
   autoFocus?: boolean;
@@ -32,13 +34,13 @@ export interface ComposerProps {
 const LINE = 22; // text-body 行高
 
 /**
- * 对话输入框：白底、细边框、控件阴影，聚焦时边框变蓝。文字区随内容自动长高（1 行起，最多 maxRows 行）。
+ * 对话输入框：白底、细边框、控件阴影，聚焦时边框变蓝。文字区默认 3 行高，随内容自动长高（最多 maxRows 行）。
  * Enter 发送，Shift + Enter 换行；输入法组字时的回车不会发送。
  * 底部一行：左侧回形针和 tools，右侧发送（实心蓝，没有内容时变浅不可点）/ 停止。
  */
 export const Composer = React.forwardRef<HTMLTextAreaElement, ComposerProps>(function Composer({
   value, defaultValue = '', onValueChange, onSubmit, busy, onStop, disabled, placeholder = '输入消息', attachments, onAttach, accept,
-  tools, maxRows = 8, autoFocus, className,
+  tools, minRows = 3, maxRows = 8, autoFocus, className,
 }, ref) {
   const [inner, setInner] = React.useState(defaultValue);
   const text = value ?? inner;
@@ -79,7 +81,7 @@ export const Composer = React.forwardRef<HTMLTextAreaElement, ComposerProps>(fun
       {hasFiles && <div className="flex flex-wrap gap-1.5 px-2.5 pt-2.5">{attachments}</div>}
       <textarea
         ref={(el) => { area.current = el; if (typeof ref === 'function') ref(el); else if (ref) ref.current = el; }}
-        rows={1}
+        rows={minRows}
         value={text}
         disabled={disabled}
         autoFocus={autoFocus}

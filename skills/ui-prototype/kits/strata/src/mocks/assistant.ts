@@ -8,7 +8,7 @@ export interface ChatFile { name: string; size: number }
 export type ChatPart =
   | { kind: 'text'; text: string }
   | { kind: 'reasoning'; text: string; seconds: number }
-  | { kind: 'tool'; title: string; name: string; status: 'running' | 'done' | 'error'; duration?: string; input: string; output?: string; error?: string }
+  | { kind: 'tool'; title: string; name: string; args?: string; status: 'running' | 'done' | 'error'; duration?: string; input: string; output?: string; error?: string }
   | { kind: 'ask-record'; items: Array<{ question: string; answer: string }> }
   | { kind: 'approval-record'; approved: boolean; title: string }
   | { kind: 'files'; files: ChatFile[] }
@@ -78,27 +78,27 @@ export const MESSAGES: Record<string, ChatMessageRow[]> = {
   ],
 };
 
-/** 右侧「文件」面板：工作区里 Agent 读过和生成的文件。size 是字节。 */
-export interface WorkspaceFile { name: string; size?: number; status?: 'added' | 'modified' | 'deleted' | 'untracked'; children?: WorkspaceFile[] }
+/** 右侧「文件」面板：工作区里 Agent 读过和生成的文件。有 children 的是文件夹。 */
+export interface WorkspaceFile { name: string; children?: WorkspaceFile[] }
 
 export const WORKSPACE: WorkspaceFile[] = [
   { name: '输出', children: [
-    { name: '华东区城市GMV_1012-1018.csv', size: 3_182, status: 'added' },
-    { name: '周报_华东_第42周.md', size: 6_420, status: 'modified' },
-    { name: '区域GMV趋势.png', size: 182_400 },
+    { name: '华东区城市GMV_1012-1018.csv' },
+    { name: '周报_华东_第42周.md' },
+    { name: '区域GMV趋势.png' },
   ] },
   { name: '附件', children: [
-    { name: '城市区域对照表.xlsx', size: 48_312 },
-    { name: '运营周报口径说明.pdf', size: 1_284_000 },
+    { name: '城市区域对照表.xlsx' },
+    { name: '运营周报口径说明.pdf' },
   ] },
   { name: 'queries', children: [
-    { name: 'gmv_by_region.sql', size: 412 },
-    { name: 'gmv_by_city.sql', size: 486, status: 'added' },
-    { name: 'refund_rate_daily.sql', size: 730 },
-    { name: 'old_gmv_test.sql', size: 220, status: 'deleted' },
+    { name: 'gmv_by_region.sql' },
+    { name: 'gmv_by_city.sql' },
+    { name: 'refund_rate_daily.sql' },
+    { name: 'old_gmv_test.sql' },
   ] },
-  { name: 'README.md', size: 1_204 },
-  { name: 'metrics.yaml', size: 2_860 },
+  { name: 'README.md' },
+  { name: 'metrics.yaml' },
 ];
 
 /* ------------------------------------------------------------------ 发送后的剧本 */

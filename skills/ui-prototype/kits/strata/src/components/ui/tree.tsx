@@ -16,6 +16,8 @@ export interface TreeNode {
   badge?: React.ReactNode;
   /** 名称的额外样式（如已删除的文件加删除线）。 */
   labelClassName?: string;
+  /** 代替名称显示的内容（如重命名时的输入框）。过滤仍按 label。 */
+  content?: React.ReactNode;
   children?: TreeNode[];
   disabled?: boolean;
 }
@@ -38,6 +40,10 @@ export interface TreeProps {
   filter?: string;
   /** md：行高 32（默认）；sm：行高 28，文件树、侧边面板这类密集列表用。 */
   size?: 'sm' | 'md';
+  /** 右键一行（文件树的右键菜单用）。 */
+  onNodeContextMenu?: (e: React.MouseEvent, node: TreeNode) => void;
+  /** 在一行上按键（Tree 自己的方向键、Enter 之外的键，如 F2、Delete）。 */
+  onNodeKeyDown?: (e: React.KeyboardEvent, node: TreeNode) => void;
   className?: string;
   'aria-label'?: string;
 }
@@ -67,7 +73,7 @@ function filterTree(ns: TreeNode[], q: string): { nodes: TreeNode[]; open: strin
  */
 export function Tree({
   data, value, defaultValue, onValueChange, checkable, checked, defaultChecked = [], onCheckedChange,
-  expanded, defaultExpanded = [], onExpandedChange, filter = '', size = 'md', className, ...aria
+  expanded, defaultExpanded = [], onExpandedChange, filter = '', size = 'md', onNodeContextMenu, onNodeKeyDown, className, ...aria
 }: TreeProps) {
   const [selInner, setSelInner] = React.useState(defaultValue);
   const [chkInner, setChkInner] = React.useState(defaultChecked);
@@ -99,6 +105,9 @@ export function Tree({
   const focus = (id: string) => { setFocusId(id); requestAnimationFrame(() => ref.current?.querySelector<HTMLElement>(`[data-node="${CSS.escape(id)}"]`)?.focus()); };
 
   const onKey = (e: React.KeyboardEvent, n: TreeNode) => {
+    if ((e.target as HTMLElement).tagName === 'INPUT') return;
+    onNodeKeyDown?.(e, n);
+    if (e.defaultPrevented) return;
     const i = visible.findIndex((v) => v.n.id === n.id);
     const has = !!n.children?.length;
     if (e.key === 'ArrowDown' && i < visible.length - 1) { e.preventDefault(); focus(visible[i + 1].n.id); }
@@ -122,6 +131,7 @@ export function Tree({
           tabIndex={current === n.id ? 0 : -1} data-node={n.id}
           onClick={(e) => { if (n.disabled || (e.target as HTMLElement).tagName === 'INPUT') return; /* Radix 复选框在表单里会冒泡一个合成 click */ setFocusId(n.id); if (checkable) { if (has) toggleOpen(n.id); else toggleCheck(n); } else { select(n); if (has && !opened) toggleOpen(n.id); } }}
           onKeyDown={(e) => onKey(e, n)}
+          onContextMenu={onNodeContextMenu && ((e) => { setFocusId(n.id); onNodeContextMenu(e, n); })}
           style={{ paddingLeft: 4 + level * INDENT }}
           className={cn(
             size === 'sm' ? 'h-7' : 'h-8',
@@ -139,7 +149,7 @@ export function Tree({
               onClick={(e) => e.stopPropagation()} onCheckedChange={() => toggleCheck(n)} />
           )}
           {n.icon && <span className={cn('inline-flex shrink-0 text-fg-subtle [&_svg]:size-4', selected && 'text-primary')}>{n.icon}</span>}
-          <span className={cn('min-w-0 flex-1 truncate', (selected || has) && 'font-medium', n.labelClassName)}><Highlight text={n.label} q={filter.trim()} /></span>
+          {n.content ?? <span className={cn('min-w-0 flex-1 truncate', (selected || has) && 'font-medium', n.labelClassName)}><Highlight text={n.label} q={filter.trim()} /></span>}
           {n.badge}
           {n.meta != null && <span className={cn('shrink-0 text-caption text-fg-subtle tabular-nums', n.actions != null && 'group-hover/row:hidden group-focus-within/row:hidden')}>{n.meta}</span>}
           {n.actions != null && (
@@ -159,7 +169,7 @@ export function Tree({
 
   return (
     <div ref={ref} role="tree" aria-multiselectable={checkable || undefined} aria-label={aria['aria-label']} className={cn('flex flex-col gap-px font-sans', className)}>
-      {nodes.length ? render(nodes, 0) : <div className="flex h-16 items-center justify-center text-body-sm text-fg-subtle">没有匹配的项</div>}
+      {nodes.length ? render(nodes, 0) : filter.trim() ? <div className="flex h-16 items-center justify-center text-body-sm text-fg-subtle">没有匹配的项</div> : null}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { ChevronDown, Database, Ellipsis, PanelRight, PanelRightClose, Pencil, S
 import {
   ApprovalPrompt, ApprovalRecord, AskPrompt, AskRecord, Button, ChatDock, ChatError, ChatMessage, ChatStatus, ChatStopped, ChatThread,
   ChatWelcome, Composer, CopyButton, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
-  DropdownMenuTrigger, EmptyState, FileChip, FileTree, IconButton, Input, Markdown, Reasoning, RetryButton, Skeleton, ToolCall, formatBytes, toast,
+  DropdownMenuTrigger, EmptyState, FileChip, FileTree, IconButton, Input, Markdown, Reasoning, RetryButton, Skeleton, ToolCall, toast,
   type FileNode,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -209,7 +209,7 @@ function Parts({ parts, streaming }: { parts: ChatPart[]; streaming?: boolean })
         switch (p.kind) {
           case 'text': return <Markdown key={i} streaming={lastText}>{p.text}</Markdown>;
           case 'reasoning': return <Reasoning key={i} seconds={p.seconds}>{p.text}</Reasoning>;
-          case 'tool': return <ToolCall key={i} title={p.title} name={p.name} status={p.status} duration={p.duration} input={p.input} output={p.output} error={p.error} />;
+          case 'tool': return <ToolCall key={i} title={p.title} name={p.name} args={p.args} status={p.status} duration={p.duration} input={p.input} output={p.output} error={p.error} />;
           case 'ask-record': return <AskRecord key={i} items={p.items} skipped={!p.items.length} />;
           case 'approval-record': return <ApprovalRecord key={i} approved={p.approved}>{p.title}</ApprovalRecord>;
           case 'files': return <div key={i} className="flex flex-wrap gap-1.5">{p.files.map((f) => <FileChip key={f.name} name={f.name} size={f.size} onClick={() => toast({ tone: 'info', title: '原型：打开文件', description: f.name })} />)}</div>;
@@ -233,38 +233,46 @@ function ThreadSkeleton() {
 
 /* ------------------------------------------------------------------ 文件面板 */
 
-function toNodes(list: WorkspaceFile[]): FileNode[] {
-  return list.map((f) => ({
-    name: f.name,
-    status: f.status,
-    children: f.children ? toNodes(f.children) : undefined,
-    meta: f.size != null ? formatBytes(f.size) : undefined,
-    actions: f.children ? undefined : (
-      <IconButton size="sm" icon={<Ellipsis />} label="更多" tooltip={false}
-        onClick={() => toast({ tone: 'info', title: '原型：文件操作', description: f.name })} />
-    ),
-  }));
+/* 原型：文件操作改的是这一页里的本地副本，刷新后恢复；真实开发换成 src/api 里的接口。 */
+const toNodes = (list: WorkspaceFile[]): FileNode[] => list.map((f) => ({ name: f.name, children: f.children ? toNodes(f.children) : undefined }));
+const count = (l: WorkspaceFile[]): number => l.reduce((n, f) => n + (f.children ? count(f.children) : 1), 0);
+
+/** 按路径改树：fn 拿到所在层的数组和下标，返回新数组。 */
+function edit(list: WorkspaceFile[], path: string, fn: (siblings: WorkspaceFile[], i: number) => WorkspaceFile[]): WorkspaceFile[] {
+  const [head, ...rest] = path.split('/');
+  const i = list.findIndex((f) => f.name === head);
+  if (i < 0) return list;
+  if (!rest.length) return fn(list, i);
+  return list.map((f, j) => (j === i && f.children ? { ...f, children: edit(f.children, rest.join('/'), fn) } : f));
 }
 
 function FilesPanel() {
   const files = useWorkspaceFiles();
+  const [local, setLocal] = React.useState<WorkspaceFile[] | null>(null);
+  React.useEffect(() => { if (files.data) setLocal(files.data); }, [files.data]);
   const [q, setQ] = React.useState('');
   const [sel, setSel] = React.useState('输出/华东区城市GMV_1012-1018.csv');
-  const count = (l: WorkspaceFile[]): number => l.reduce((n, f) => n + (f.children ? count(f.children) : 1), 0);
+  const add = (items: WorkspaceFile[]) => setLocal((l) => [...items, ...(l ?? [])]);
   return (
     <aside className="flex w-72 shrink-0 flex-col border-l border-border">
       <div className="flex h-12 shrink-0 items-center gap-1.5 border-b border-border px-4">
         <span className="text-body font-medium text-fg">文件</span>
-        {files.data && <span className="text-caption text-fg-subtle tabular-nums">{count(files.data)}</span>}
+        {local && <span className="text-caption text-fg-subtle tabular-nums">{count(local)}</span>}
       </div>
       <div className="p-2"><Input size="sm" leftIcon={<Search />} placeholder="搜索文件" value={q} onChange={(e) => setQ(e.target.value)} clearable onClear={() => setQ('')} /></div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-1.5 pb-2">
+      <div className="min-h-0 flex-1 overflow-y-auto px-1.5">
         {files.isPending && Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="mb-1 h-6 rounded-sm" />)}
         {files.isError && <EmptyState size="sm" title="文件读取失败" action={<Button size="sm" onClick={() => files.refetch()}>重试</Button>} />}
-        {files.data && !files.data.length && <EmptyState size="sm" title="还没有文件" />}
-        {!!files.data?.length && (
-          <FileTree data={toNodes(files.data)} value={sel} filter={q} defaultExpanded="all"
-            onValueChange={(p) => { setSel(p); toast({ tone: 'info', title: '原型：预览文件', description: p }); }} />
+        {local && !local.length && <EmptyState size="sm" title="还没有文件" />}
+        {local && (
+          <FileTree data={toNodes(local)} value={sel} filter={q} defaultExpanded="all"
+            onValueChange={(p) => { setSel(p); toast({ tone: 'info', title: '原型：预览文件', description: p }); }}
+            onRename={(p, name) => { setLocal((l) => edit(l ?? [], p, (s, i) => s.map((f, j) => (j === i ? { ...f, name } : f)))); toast({ tone: 'success', title: '已重命名', description: name }); }}
+            onDelete={(p) => { setLocal((l) => edit(l ?? [], p, (s, i) => s.filter((_, j) => j !== i))); toast({ tone: 'success', title: '已删除', description: p }); }}
+            onDownload={(p) => toast({ tone: 'info', title: '原型：开始下载', description: p })}
+            onCreate={(_, name, kind) => { add([kind === 'folder' ? { name, children: [] } : { name }]); toast({ tone: 'success', title: kind === 'folder' ? '已新建文件夹' : '已新建文件', description: name }); }}
+            onUpload={(_, fs) => { add(fs.map((f) => ({ name: f.name }))); toast({ tone: 'success', title: `已上传 ${fs.length} 个文件` }); }}
+          />
         )}
       </div>
     </aside>
