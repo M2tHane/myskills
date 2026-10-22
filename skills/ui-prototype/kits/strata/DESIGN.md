@@ -193,7 +193,9 @@ Strata 是一套给后台、数据类产品用的界面风格：**白与灰是�
 |---|---|
 | `DataTable` | 列表页主体。`columns`（`width` 是基准宽度：表格更宽时各列等比放大，更窄时不写 width 的列先压到 160 再横向滚动；`minWidth` 允许压缩；`numeric` 右对齐等宽；`sortable`；`render`）。名称列可以不写 width（按 240 计）。悬停整行高亮。`selectable` + `bulkActions`、`rowActions`（悬停出现）、`onRowClick` + `activeRowKey`（打开侧滑详情）、`toolbar`、`loading`、`empty`、`density`。分页内置；服务端分页时传 `total`、`page`、`onPageChange`、`onPageSizeChange`，受控排序传 `sort`、`onSortChange`，`data` 只放当前页。 |
 | `Pagination` | 表格外单独分页时用。`full` / `simple`，页大小固定 10/20/50/100。 |
-| `Tree` | 层级数据：目录、库表、组织架构。行高 32，每级缩进 16 并有引导线，`meta` 放右侧计数。`checkable` 时只记录叶子节点（`checked` / `onCheckedChange`），父节点显示全选 / 半选；`defaultExpanded="all"` 全部展开；`filter` 传关键词即可过滤并高亮，自动展开命中路径。 |
+| `Tree` | 层级数据：目录、库表、组织架构。行高 32（`size="sm"` 为 28），每级缩进 16 并有引导线，`meta` 放右侧计数，节点的 `actions` 悬停时代替 meta 出现。`checkable` 时只记录叶子节点（`checked` / `onCheckedChange`），父节点显示全选 / 半选；`defaultExpanded="all"` 全部展开；`filter` 传关键词即可过滤并高亮，自动展开命中路径。 |
+| `FileTree` | 文件树：工作区文件、知识库目录、Agent 生成的产物。基于 Tree（键盘、过滤一样），行高 28；文件夹在前、按名称排序；图标按扩展名（`fileIcon(name)`），文件夹展开时换成打开的图标；`status` 显示变更 A / M / D / U（D 加删除线），文件夹里有变更时名称右侧一个小圆点；`meta` 放大小。节点 id 是路径（`src/app/routes.tsx`），点文件夹只展开 / 收起，不会被选中。 |
+| `FileChip` | 一个文件：高 40，图标块 + 名称 + 类型 · 大小。对话输入框里待发送的附件（`onRemove` 出现 ×，`status="uploading"` 显示进度，`error` 红框写原因），消息里已发送的附件、Agent 生成的文件（`onClick` 打开）。 |
 | `Dropzone` / `UploadList` | 上传。`Dropzone` 是虚线拖放区（`accept` `multiple` `maxSize`，`size="sm"` 用在表单里），`onFiles(accepted, rejected)` 把不符合要求的文件单独返回；`UploadList` 每个文件一行：图标、名称、大小、进度条或状态，失败显示原因，`retryable` 的才出现「重试」。上传进度和请求放在 `src/api/`。 |
 
 ### 布局与导航
@@ -210,6 +212,21 @@ Strata 是一套给后台、数据类产品用的界面风格：**白与灰是�
 | `VerticalNav` | 子模块多于 6 个，或设置类页面：左侧二级导航，右侧内容区。 |
 | `ResizableGroup` / `ResizablePanel` / `ResizableHandle` | **可选组件**（`src/components/optional/resizable.tsx`，需装 `react-resizable-panels@4.14.7`）。编辑器 + 结果、对话 + 结果、目录树 + 详情这类要让用户调宽高的分栏。`variant="line"`：同一张卡片里的面板，1px 细线分隔；`variant="gap"`：两张卡片之间 8px 间隙，分隔线平时隐藏。悬停、拖动、键盘聚焦时分隔线变 ring 色。`orientation="vertical"` 上下分栏，可嵌套；`storageKey` 记住用户拖出的尺寸。面板尺寸：数字是 px，不带单位的字符串是百分比。外框不用它。 |
 | `Card` | 内容分块。`title` `extra`（右上操作）`footer`；表格、列表铺满时 `padding="none"`。 |
+
+### 对话与 Agent
+与 LLM 对话的页面用这一组，样板是 `pages/assistant/assistant-page.tsx`。规则：消息不放头像；用户的话是右侧浅灰气泡，助手的回答是左侧无底色的正文；蓝色只给发送按钮和等用户处理的提问；不用渐变、闪光图标、打字机音效之类的「AI 味」装饰。
+
+| 组件 | 什么时候用 |
+|---|---|
+| `ChatThread` / `ChatDock` | 消息区与底部停靠区。消息区占满剩余高度、自己滚动，内容居中宽 `--chat-width`（760）；停在底部时新内容自动跟到底，用户往上翻时不打扰，底部出现「回到底部」。`ChatDock` 放输入框或提问框，与消息同宽。 |
+| `ChatMessage` | 一条消息。`role="user"`：右侧浅灰气泡（最宽 85%），附件在气泡上方；`role="assistant"`：正文、工具调用、文件依次往下排。`actions` 是消息下方的操作（`CopyButton`、`RetryButton`），默认悬停才出现，最后一条助手消息用 `showActions="always"`。 |
+| `Markdown` / `Prose` / `CodeBlock` | 助手正文。`Prose` 是排版（段落、标题、列表、行内代码、引用、表格）；`Markdown` 是原型用的简化渲染（假数据里的回答是字符串），`streaming` 时末尾显示光标；真实开发换成 `react-markdown` + `remark-gfm`，外面照样包 `Prose`，代码块用 `CodeBlock`（语言名 + 复制）。 |
+| `ChatStatus` / `Reasoning` | 进行中的一行「正在思考 · 3 秒」（传 `since` 计时）；思考过程默认收起成「已思考 4 秒」，展开是左侧细线的灰字。 |
+| `ToolCall` | 工具调用：一行 36（状态图标、给人看的动作「查询订单数据」、等宽工具名 `run_sql`、耗时），点开看参数和结果；失败时红框、展开显示原因。连续多个直接上下排列，不再包一层。 |
+| `Composer` | 对话输入框：自动长高（1 行起，最多 `maxRows` 行），Enter 发送、Shift + Enter 换行（输入法组字时不发送）；`onAttach` 开启回形针、拖入、粘贴文件，待发送附件用 `FileChip` 放 `attachments`；左下 `tools` 放数据源、模型等（ghost 小按钮 + 下拉菜单，不放带边框的 Select）；右下圆形发送（没内容时变浅），生成中变成「停止」。占位文字写能问什么，不写操作说明。 |
+| `AskPrompt` / `AskRecord` | Agent 反问用户：出现时**代替输入框**停在底部，不用弹窗遮住对话（用户要能往上翻看上下文）。每个选项一行（编号或复选框 + 名称 + 可选的一行补充），选中浅蓝底蓝边；最后自动加「其他」（选中后出现输入框）；多个问题时顶部是标签，答过的打勾；数字键选择、Enter 下一题 / 提交、Esc 跳过。回答后在消息里留 `AskRecord`（问题 ↳ 回答）。 |
+| `ApprovalPrompt` / `ApprovalRecord` | 执行有副作用的工具前请用户确认，同样代替输入框：标题一句「允许删除 3 个查询？」、工具名、将执行的参数（等宽）、一行影响范围；按钮「拒绝 / 允许」，`danger`（不可撤销）时图标和允许按钮变红、不出现「以后都允许」。Enter 允许，Esc 拒绝。处理后留 `ApprovalRecord`（已允许 / 已拒绝）。 |
+| `ChatError` / `ChatStopped` / `ChatWelcome` | 生成失败（一行红色提示 + 重试）；用户停止后的「已停止生成」；新对话的起始：一个标题 + 2–4 个可直接点的问题，没有插画。 |
 
 ### 反馈与浮层
 | 组件 | 什么时候用 |
@@ -240,6 +257,7 @@ Strata 是一套给后台、数据类产品用的界面风格：**白与灰是�
 | 分步向导 | `/data/sources/new` | `pages/sources/source-wizard-page.tsx` | 3–5 步；卡片顶部 Steps，底部 ActionBar（左上一步，右取消 + 下一步 / 完成）；一个表单贯穿所有步骤，每步只 `trigger` 本步字段 |
 | 登录 | `/login` | `pages/auth/login-page.tsx` | 外框之外；左侧灰画布（左上角 Logo）放真实组件拼的产品预览，右侧 480px 白色表单栏；不用插画、渐变 |
 | 按角色可见 | `/members` | `pages/members/member-list-page.tsx` + `api/members.ts` | 权限规则写在 api 文件（`canManageMembers`）：接口没权限返回 403，`useNav` 按它过滤入口，按钮按它显示；页面自己不判断角色 |
+| 对话（Agent） | `/assistant`、`/assistant/:id` | `pages/assistant/assistant-page.tsx` + `api/assistant.ts` | 不用 PageHeader / PageBody，整块填满内容区，三栏白底、1px 边框分开：左侧会话列表 256（按今天 / 昨天 / 近 7 天 / 更早分组，搜索）· 中间对话（顶部 48 标题栏 → ChatThread → ChatDock）· 右侧文件面板 288（FileTree，可收起）。Agent 提问或请求确认时底部换成 AskPrompt / ApprovalPrompt。`useChatRun` 模拟流式输出（思考 → 工具 → 文字），真实开发换成流式接口 |
 | 403 / 404 / 出错 | `*`、`errorElement`、读取失败 | `pages/errors/error-pages.tsx` | 在外框内只占内容区；固定结构：图标块、状态码、标题、一行事实、两个按钮 |
 
 - 只有 ≤5 个字段的简单新建（重命名、加标签）才用 Dialog md。
@@ -306,6 +324,7 @@ Strata 的组件只依赖 React、Radix、cva、clsx、tailwind-merge、lucide-r
 | 表单与校验 | `react-hook-form@7.90.0` + `zod@4.6.7` + `@hookform/resolvers@5.9.2` | 始终（只要有表单）。写法见第 15 节 | Formik、手写 useState 表单校验、yup |
 | 日期 | `date-fns@4.4.0` | 始终（日期组件依赖它） | moment、dayjs、手写日期计算 |
 | 动画 | 优先 CSS（`theme.css` 里的 `animate-*`）；复杂动效用 `motion@14.4.0` | 列表增删时其余项平滑挪位、拖拽回弹、数字滚动、共享元素过渡等 CSS 做不好的效果 | 为开合、淡入这类简单效果引入 Motion；react-spring、GSAP |
+| Markdown 渲染 | `react-markdown@10.1.0` + `remark-gfm@4.0.1`，结果包在 Strata 的 `Prose` 里，代码块用 `CodeBlock` | 真实开发里渲染 LLM 回答；原型用 Strata 的 `Markdown`（简化版）即可，不装 | marked + `dangerouslySetInnerHTML`；自己写正则渲染 |
 | 图表 | `echarts@6.1.0`，通过 Strata 的 `Chart` 与图表生成函数使用（见第 13 节） | 折线、柱状、占比、散点、热力、漏斗、柱线组合等任何数据图 | Recharts、Chart.js、AntV；手写 ECharts 配色和样式 |
 | 可拖动分栏 | `react-resizable-panels@4.14.7`，通过 Strata 的 `Resizable*` 组件使用 | 编辑器 + 结果、对话 + 结果、目录树 + 详情等需要用户调宽高的分栏 | 自己写拖拽调宽；用它做应用外框（外框固定用 AppShell） |
 | 拖拽 | `@dnd-kit/core@6.3.1`、`@dnd-kit/sortable@10.0.0`、`@dnd-kit/utilities@3.2.2` | 排序列表、看板、仪表盘布局、把字段拖进维度 / 指标区 | react-beautiful-dnd、原生 HTML5 拖拽 |

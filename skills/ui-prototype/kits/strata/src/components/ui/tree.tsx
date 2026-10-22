@@ -10,6 +10,12 @@ export interface TreeNode {
   icon?: React.ReactNode;
   /** 右侧数据：数量、类型。不写说明文字。 */
   meta?: React.ReactNode;
+  /** 悬停或键盘聚焦到这一行时，在右侧代替 meta 显示的操作（一般是一两个 IconButton size="sm"）。 */
+  actions?: React.ReactNode;
+  /** 名称后面的标记（如文件变更状态），始终显示。 */
+  badge?: React.ReactNode;
+  /** 名称的额外样式（如已删除的文件加删除线）。 */
+  labelClassName?: string;
   children?: TreeNode[];
   disabled?: boolean;
 }
@@ -30,6 +36,8 @@ export interface TreeProps {
   onExpandedChange?: (ids: string[]) => void;
   /** 过滤关键字：只显示匹配的节点及其祖先，并自动展开、高亮匹配文字。 */
   filter?: string;
+  /** md：行高 32（默认）；sm：行高 28，文件树、侧边面板这类密集列表用。 */
+  size?: 'sm' | 'md';
   className?: string;
   'aria-label'?: string;
 }
@@ -59,7 +67,7 @@ function filterTree(ns: TreeNode[], q: string): { nodes: TreeNode[]; open: strin
  */
 export function Tree({
   data, value, defaultValue, onValueChange, checkable, checked, defaultChecked = [], onCheckedChange,
-  expanded, defaultExpanded = [], onExpandedChange, filter = '', className, ...aria
+  expanded, defaultExpanded = [], onExpandedChange, filter = '', size = 'md', className, ...aria
 }: TreeProps) {
   const [selInner, setSelInner] = React.useState(defaultValue);
   const [chkInner, setChkInner] = React.useState(defaultChecked);
@@ -116,7 +124,8 @@ export function Tree({
           onKeyDown={(e) => onKey(e, n)}
           style={{ paddingLeft: 4 + level * INDENT }}
           className={cn(
-            'group/row flex h-8 cursor-pointer items-center gap-1.5 rounded-sm pr-2 text-body-sm outline-none select-none',
+            size === 'sm' ? 'h-7' : 'h-8',
+            'group/row flex cursor-pointer items-center gap-1.5 rounded-sm pr-2 text-body-sm outline-none select-none',
             'focus-visible:shadow-focus-ring',
             selected ? 'bg-surface-selected text-primary-hover' : 'text-fg hover:bg-surface-hover',
             n.disabled && 'cursor-not-allowed text-fg-disabled hover:bg-transparent',
@@ -130,8 +139,13 @@ export function Tree({
               onClick={(e) => e.stopPropagation()} onCheckedChange={() => toggleCheck(n)} />
           )}
           {n.icon && <span className={cn('inline-flex shrink-0 text-fg-subtle [&_svg]:size-4', selected && 'text-primary')}>{n.icon}</span>}
-          <span className={cn('min-w-0 flex-1 truncate', (selected || has) && 'font-medium')}><Highlight text={n.label} q={filter.trim()} /></span>
-          {n.meta != null && <span className="shrink-0 text-caption text-fg-subtle tabular-nums">{n.meta}</span>}
+          <span className={cn('min-w-0 flex-1 truncate', (selected || has) && 'font-medium', n.labelClassName)}><Highlight text={n.label} q={filter.trim()} /></span>
+          {n.badge}
+          {n.meta != null && <span className={cn('shrink-0 text-caption text-fg-subtle tabular-nums', n.actions != null && 'group-hover/row:hidden group-focus-within/row:hidden')}>{n.meta}</span>}
+          {n.actions != null && (
+            <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}
+              className="-mr-1 hidden shrink-0 items-center gap-0.5 group-hover/row:flex group-focus-within/row:flex has-[[data-state=open]]:flex">{n.actions}</span>
+          )}
         </div>
         {opened && (
           <div role="group" className="relative">

@@ -41,3 +41,7 @@ export * from './date-picker';
 export * from './tree';
 export * from './upload';
 export * from './command-palette';
+export * from './file-tree';
+export * from './chat';
+export * from './composer';
+export * from './ask-prompt';

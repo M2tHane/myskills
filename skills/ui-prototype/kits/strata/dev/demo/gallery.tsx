@@ -9,6 +9,7 @@ import {
   Calendar, CommandPalette, DatePicker, DateRangePicker, Dropzone, Tree, UploadList, type TreeNode, type UploadItem, type DateRange,
 } from '@/components/ui';
 import { QUERIES } from '@/mocks/db';
+import { ChatDemo } from './chat-demo';
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '@/components/optional/resizable';
 import { Chart, barChart, comboChart, donutChart, fmt, funnelChart, heatmapChart, lineChart, rankingChart } from '@/components/optional/chart';
 
@@ -344,6 +345,10 @@ export function Gallery() {
 
       <Section no="8" title="日期 · 树 · 上传 · 命令面板">
         <NewComponentsDemo />
+      </Section>
+
+      <Section no="10" title="对话 · 提问与确认 · 文件树">
+        <ChatDemo />
       </Section>
 
       <Section no="7" title="图表（可选组件 · ECharts）">

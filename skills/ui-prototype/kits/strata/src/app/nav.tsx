@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { ChartColumn, Database, House, Layers, ListFilter, LogOut, Plus, Settings, Table, Users } from 'lucide-react';
+import { ChartColumn, Database, House, Layers, ListFilter, LogOut, MessagesSquare, Plus, Settings, Table, Users } from 'lucide-react';
 import type { CommandGroup, NavSection } from '@/components/ui';
 import { useQueryList } from '@/api/queries';
 import { canManageMembers } from '@/api/members';
@@ -14,7 +14,7 @@ export const SHELL = { workspace: '运营数据中心', workspaceSub: '团队版
  * 有子菜单的父项 key 不对应页面（点击时进入第一个子项）。
  */
 const NAV: NavSection[] = [
-  { items: [{ key: '/', label: '概览', icon: <House /> }, { key: '/queries', label: '查询', icon: <ListFilter />, count: 46 }] },
+  { items: [{ key: '/', label: '概览', icon: <House /> }, { key: '/queries', label: '查询', icon: <ListFilter />, count: 46 }, { key: '/assistant', label: '数据助手', icon: <MessagesSquare /> }] },
   {
     title: '数据',
     items: [

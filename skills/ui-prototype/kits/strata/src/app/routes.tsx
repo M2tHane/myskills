@@ -9,6 +9,7 @@ import { SourceWizardPage } from '@/pages/sources/source-wizard-page';
 import { SettingsPage } from '@/pages/settings/settings-page';
 import { MemberListPage } from '@/pages/members/member-list-page';
 import { LoginPage } from '@/pages/auth/login-page';
+import { AssistantPage } from '@/pages/assistant/assistant-page';
 import { NotFoundPage, RouteErrorPage } from '@/pages/errors/error-pages';
 
 const h = (handle: RouteHandle) => handle;
@@ -52,6 +53,13 @@ export const routes: RouteObject[] = [
               { path: ':name', element: <TableDetailPage />, handle: h({ crumb: (m) => m.params.name ?? '' }) },
             ],
           },
+        ],
+      },
+      {
+        path: 'assistant', handle: h({ crumb: '数据助手' }),
+        children: [
+          { index: true, element: <AssistantPage /> },
+          { path: ':id', element: <AssistantPage />, handle: h({ crumb: '对话' }) },
         ],
       },
       { path: 'members', element: <MemberListPage />, handle: h({ crumb: '成员与权限' }) },

@@ -127,6 +127,7 @@
   --row-compact: 36px; /* 密集表格行高。 */
   --row: 40px; /* 默认表格行高、列表项高度。 */
   --header-height: 52px; /* 顶栏高度。 */
+  --chat-width: 760px; /* 对话区内容宽度（消息、输入框居中，两侧留白）。 */
   --sidebar-width: 232px; /* 侧边栏展开宽度。 */
 
   /* type */
@@ -336,6 +337,7 @@
   --animate-spin: st-spin 800ms linear infinite;
   --animate-skeleton: st-skeleton 1.4s ease-in-out infinite;
   --animate-indeterminate: st-indeterminate 1.3s ease-in-out infinite;
+  --animate-caret: st-caret 1s steps(1) infinite;
 }
 
 @keyframes st-fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -346,6 +348,7 @@
 @keyframes st-spin { to { transform: rotate(360deg); } }
 @keyframes st-skeleton { 0%, 100% { background-color: var(--surface-active); } 50% { background-color: var(--gray-150); } }
 @keyframes st-indeterminate { 0% { left: -36%; } 100% { left: 100%; } }
+@keyframes st-caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 /* ------------------------------------------------------------------- base */
 @layer base {

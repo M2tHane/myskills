@@ -14,11 +14,11 @@ ui-prototype 的一套 UI 套件：做原型时 agent 读 [KIT.md](KIT.md)，照
 | `DESIGN.md` | 设计规范：原则、12 条用户偏好、token、组件选型、页面样板表、文案、新组件配方、禁止清单、技术选型、图表、项目结构与路由、表单写法 |
 | `theme.css` + `fonts/` | 全部 token 与字体（Geist，许可证 `fonts/OFL.txt` 要随字体一起保留） |
 | `starter/` | 原型工程骨架：依赖与版本、Vite 与 TypeScript 配置、入口、起步路由与导航 |
-| `src/components/ui/` | 约 45 个组件 |
+| `src/components/ui/` | 约 47 个组件，含对话类（对话消息、输入框、提问与执行确认）和文件树 |
 | `src/components/optional/` | 可选组件（可拖动分栏、ECharts 图表），需要额外的库，用到才复制 |
 | `src/lib/utils.ts` | `cn()` |
 | `src/app/` | 应用骨架：路由表、外框、导航、Provider、离开确认、原型专用的状态切换条 |
-| `src/pages/` | 页面样板：列表、表单、详情、概览、设置、向导、登录、403 / 404、读取失败 |
+| `src/pages/` | 页面样板：列表、表单、详情、概览、设置、向导、登录、对话（Agent）、403 / 404、读取失败 |
 | `src/api/` + `src/mocks/` | 接口层样板与演示数据（只有 api 能引用 mocks）；`delay()` 支持 `?state=` 切换四种状态；`session.ts` + `users.ts` 是当前用户与演示账号，支持 `?as=` 切换身份；`errors.ts` 是接口报错 `ApiError`；`members.ts` 是按角色控制权限的样板；`mocks/gen.ts` 是固定种子的假数据生成器 |
 | `prototypes/` | 样板的单文件 HTML 成品 |
 | `scripts/check.mjs` | 规范检查，不需要安装依赖 |

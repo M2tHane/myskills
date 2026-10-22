@@ -62,7 +62,7 @@ cd $P && npm ci && npm run typecheck
    - 类型：列表 `list`、详情 `detail`、新建 / 编辑 `form`。资源名用小写英文和连字符（`purchase-order`）；PRD 里一页有多个路由时，`--route` 用「,」隔开。
    - 生成的文件：页面 `src/pages/<资源>/<资源>-<类型>-page.tsx`；第一次遇到这个资源时，再生成接口层 `src/api/<资源>.ts`（只有读取）和假数据 `src/mocks/<资源>.ts`（30 条）。这两个已存在就跳过，并列出页面还缺的 hooks。路由插进 `routes.tsx`（同一资源放一组，面包屑两级）；加 `--nav` 时再插一个导航项。
    - 生成的页面已经接好四种状态、两种空状态、跳转和一个删除弹窗，要填的地方标了 `TODO(prd)`：列、筛选、字段、操作、信息分组。填完搜一遍 `TODO(prd)`，一处都不能剩。
-   - 脚本不生成的页面（概览、设置、向导、登录等），以及生成的页面要加 Tabs、侧滑详情等时，去 DESIGN.md 第 8 节的样板表找对应样板（在 `$K/src/pages/`，接口层样板在 `$K/src/api/`）照着写。样板页面和演示数据不要整份复制进原型。
+   - 脚本不生成的页面（概览、设置、向导、登录、与 LLM 对话的页面等），以及生成的页面要加 Tabs、侧滑详情等时，去 DESIGN.md 第 8 节的样板表找对应样板（在 `$K/src/pages/`，接口层样板在 `$K/src/api/`）照着写。样板页面和演示数据不要整份复制进原型。
 3. 改骨架（`src/app/app-layout.tsx` 不用改）：
    - `src/app/routes.tsx`：脚本生成的页面已经插好；手写的页面插在 `// @new-page:routes` 前面。路径与 PRD 页面表的「路由」一致，每级写 `handle.crumb`；详情页的面包屑默认显示 id。
    - `src/app/nav.tsx`：`SHELL` 写工作区名（产品名）、搜索框提示、通知数（不需要铃铛写 `null`）；`useNav` 返回项目的导航（导航项插在 `// @new-page:nav` 前面，`--nav` 插的图标统一是 `FileText`，要换成合适的）；`useCommandGroups` 返回项目的业务对象和常用操作；`useUserMenu` 返回用户菜单里的项（修改密码、退出登录等，没有就返回空数组）。
