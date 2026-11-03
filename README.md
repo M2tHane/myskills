@@ -7,6 +7,7 @@
 | Skill | 用途 | 调用 |
 |---|---|---|
 | [clarify-requirement](skills/clarify-requirement/SKILL.md) | 在已有项目里提新需求时用：先读项目摸清背景，逐个追问模糊点，再用大白话加一个具体例子讲清准备怎么做，确认后才动手 | 描述需求时自动触发，或 `/clarify-requirement [需求]` |
+| [handoff-brief](skills/handoff-brief/SKILL.md) | 方案确认后，把它压成一份一屏能看完的任务书，交给 Codex 等实施者 | 说“写交接”“交给 Codex”时触发，或 `/handoff-brief` |
 
 ## 安装
 
@@ -23,6 +24,7 @@ npx skills add M2tHane/myskills -g                            # 全部装到全�
 ```bash
 git clone git@github.com:M2tHane/myskills.git
 ln -s "$PWD/myskills/skills/clarify-requirement" ~/.claude/skills/clarify-requirement
+ln -s "$PWD/myskills/skills/handoff-brief" ~/.claude/skills/handoff-brief
 ```
 
 每个 skill 建一个软链接，新开的会话就能用。
